@@ -1,0 +1,3 @@
+data Racional { numerador :: Int ;
+denominador :: Int ;
+}

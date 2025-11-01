@@ -1,0 +1,20 @@
+class Chr a {
+    tychr :: a - > Char ;
+}
+
+instance Chr for Int {
+    tychr v :: Int - > Char {
+    return 'I';
+    }
+}
+
+instance Chr for Bool {
+    tychr v :: Int - > Char {
+    return 'B';
+    }
+}
+
+main :: Void {
+    print ( tyChr (0) [0]);
+    print ( tyChr ( true ) [0]);
+}

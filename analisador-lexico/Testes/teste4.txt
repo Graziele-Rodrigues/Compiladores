@@ -1,0 +1,2 @@
+iterate ( expr ) cmd
+iterate ( i : expr ) cmd

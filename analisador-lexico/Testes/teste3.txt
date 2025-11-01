@@ -1,0 +1,16 @@
+main :: Void {
+    print ( str ( fat (10) [0]) ) ;
+}
+
+fat num :: Int {
+    if ( num < 1)
+        return 1;   
+    else
+        return num * fat ( num-1 ) [0];
+}
+
+divmod num div :: Int - > Int - > Int & Int {
+    q = num / div ;
+    r = num % div ;
+    return q r ;
+}
