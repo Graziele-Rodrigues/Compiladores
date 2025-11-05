@@ -1,3 +1,9 @@
+# Trabalho de Compiladores - Analisador Léxico
+# nome: Graziele de Cassia Rodrigues
+# matricula: 21.1.8120
+# data: 11/2025
+
+
 # Diretório de build
 BUILD_DIR := Build
 

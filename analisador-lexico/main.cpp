@@ -1,4 +1,3 @@
-#include "parser.h"
 /*
 Compilacao
 flex --c++ lexico.l
@@ -12,6 +11,14 @@ Build/main < teste1.txt
 
 Identificar erro no lexer.l
 head -30 lexer.l | cat -A^C
+*/
+#include "parser.h"
+
+/* 
+Trabalho de Compiladores - Analisador Léxico
+nome: Graziele de Cassia Rodrigues 
+matricula: 21.1.8120
+data: 11/2025
 */
 
 int main()

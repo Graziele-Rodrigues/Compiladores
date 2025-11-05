@@ -18,9 +18,12 @@ delim       [ \t\n]
 brancos     {delim}+
 letra       [A-Za-z]
 digito      [0-9]
-id          {letra}({letra}|{digito})*
-num         {digito}+(\.{digito}+)?(E[+-]?{digito}+)?
-char_lit    \'(\\.|[^\\'])\'
+tyid        [A-Z]({letra}|{digito})*
+id          [a-z]({letra}|{digito})*
+int_lit     {digito}+
+float_lit   {digito}*"."{digito}+([eE][+-]?{digito}+)?
+char_lit    \'([^\\'\n\r]|\\[nrtb'\\]|\\[0-9]{3})\'
+
 
 %%
 
@@ -32,6 +35,21 @@ char_lit    \'(\\.|[^\\'])\'
             yycolumn++;
         }
     }
+}
+
+
+"\{-"([^-\}]|"-"[^}]|"\}"[^{])*"\{-" {
+    std::cerr << "Erro léxico: comentário aninhado não suportado na linha "
+              << yylineno << std::endl;
+}
+
+"\{-"([^-\}]|"-"[^}]|"\}"[^{])*"-\}" {
+    yycolumn += yyleng;
+}
+
+"\{-"([^-\}]|"-"[^}]|"\}"[^{])*$ {
+    std::cerr << "Erro léxico: comentário não fechado na linha "
+              << yylineno << std::endl;
 }
 
 
@@ -49,25 +67,32 @@ char_lit    \'(\\.|[^\\'])\'
 "false"      { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return FALSE_LIT; }
 "null"       { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return NULL_LIT; }
 
+
 "Int"        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return INT_TYPE; }
 "Char"       { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return CHAR_TYPE; }
 "Bool"       { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return BOOL_TYPE; }
 "Float"      { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return FLOAT_TYPE; }
 "Void"       { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return VOID_TYPE; }
+"main"       { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return MAIN; }
+"print"      { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return PRINT; }
+"tychr"      { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return TYCHR; }
 
-{num}        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return FLOAT; }
+
+{float_lit} { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return FLOAT; }
+{int_lit}   { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return INT; }
 {char_lit}   { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return CHAR; }
-[A-Z]({letra}|{digito})*  { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return TYID; }
-[a-z]({letra}|{digito})*  { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return ID; }
+{tyid}  { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return TYID; }
+{id}  { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return ID; }
 
 "::"        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return DOUBLE_COLON; }
 "->"        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return ARROW; }
-"<="        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return RELOP; }
-"<>"        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return RELOP; }
-">="        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return RELOP; }
-"&&"        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return AND_OP; }
-"=="        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return EQ_OP; }
-"!="        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return NE_OP; }
+"<"         { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return LT; }
+"<="        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return LE; }
+">"         { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return GT; }
+">="        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return GE; }
+"=="        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return EQ; }
+"!="        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return NE; }
+
 
 "="         { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return ATTR; }
 "&"         { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return AMPERSAND; }
@@ -87,8 +112,6 @@ char_lit    \'(\\.|[^\\'])\'
 "*"         { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return MULT; }
 "/"         { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return DIV; }
 "%"         { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return MOD; }
-"<"         { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return RELOP; }
-">"         { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return RELOP; }
 
 . {
     std::cerr << "Linha " << yylineno << ", Coluna " << yycolumn

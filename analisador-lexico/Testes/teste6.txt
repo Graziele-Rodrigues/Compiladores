@@ -1,0 +1,38 @@
+data Point
+
+{- comentário de
+   múltiplas linhas
+   deve ser ignorado -}
+
+class Main {
+    Int x = 10;
+    Float y = 3.14;
+    Char c = '\n';
+    Bool flag = true;
+    Void nothing = null;
+
+    func soma(a, b) {
+        return a + b;
+    }
+
+    if (flag && x > 5) {
+        print(x);
+    } else {
+        print(0);
+    }
+
+    iterate i = 0; i < 10; i = i + 1 {
+        print(i);
+    }
+
+    newObj = new Point;
+}
+
+{- comentário não fechado
+   (teste de erro)
+   
+main {
+    tychr letra = 'a';
+    instance demo;
+}
+
