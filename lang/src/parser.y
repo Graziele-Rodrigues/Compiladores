@@ -1,4 +1,3 @@
-/* Graziele de Cassia Rodrigues 21.1.8120 */
 %language "c++"
 %defines
 %define api.parser.class {Parser}
@@ -13,56 +12,45 @@
 %lex-param   { Lexer& lexer }
 
 %code {
-    #include <iostream>
-
     int yylex(yy::Parser::semantic_type*, Lexer& lexer) {
         return lexer.yylex();
     }
 }
 
-/* ----------- TOKENS ----------- */
+/* ---------- TOKENS ---------- */
 
-%token DATA FUNC CLASS INSTANCE FOR IF ELSE ITERATE RETURN_KW NEW
-%token TRUE_LIT FALSE_LIT NULL_LIT MAIN PRINT TYCHR
+%token DATA CLASS INSTANCE FOR
+%token IF ELSE ITERATE RETURN_KW NEW
+%token TRUE_LIT FALSE_LIT NULL_LIT
 
 %token INT_TYPE CHAR_TYPE BOOL_TYPE FLOAT_TYPE VOID_TYPE
 %token INT FLOAT CHAR TYID ID
 
-%token DOUBLE_COLON ARROW
-%token EQ NE GT GE LT LE
+%token DOUBLE_COLON ARROW COLON
+%token EQ NE LT LE GE
 %token ANDAND
+%token AND
+
+%token MAIS MENOS MULT DIVISAO  RESTO
+%token L_CHAVE R_CHAVE L_PARENTESE R_PARENTESE L_COLCHETE R_COLCHETE
 
 %token ATTR
-%token SEMICOLON
-%token COMMA
-%token COLON
+%token SEMICOLON COMMA DOT
 
-%token L_CHAVE R_CHAVE
-%token L_PARENTESE R_PARENTESE
-%token L_COLCHETE R_COLCHETE
-%token DOT
+/* ---------- PRECEDÊNCIA ---------- */
 
-
-/* ----------- PRECEDENCIA ----------- */
 %left ANDAND
-%left EQ NE LT LE GT GE
-%left '+' '-'
-%left '*' '/' '%'
-%right '!' UMINUS
+%left EQ NE
+%nonassoc LT LE GE
+%left MAIS MENOS
+%left MULT DIV RESTO
+%right NEGACAO UMINUS
 
-/* ----------- GRAMATICA ----------- */
 %%
-/* ----------- PROGRAMA ----------- */
 
 prog
     : /* vazio */
     | prog decl
-    | main_decl
-    ;
-
-/* ----------- DECLARACOES ----------- */
-main_decl
-    : MAIN DOUBLE_COLON type block
     ;
 
 decl
@@ -72,9 +60,8 @@ decl
     | instDec
     ;
 
-/* ----------- DATA / BIND ----------- */
 data
-    : DATA TYID L_CHAVE bind_list R_CHAVE
+    : DATA TYID '{' bind_list '}'
     ;
 
 bind_list
@@ -86,7 +73,6 @@ bind
     : ID DOUBLE_COLON typeAnnot SEMICOLON
     ;
 
-/* ----------- FUNCOES ----------- */
 func
     : ID id_list DOUBLE_COLON typeAnnot block
     ;
@@ -96,7 +82,6 @@ id_list
     | id_list ID
     ;
 
-/* ----------- CLASSES/INSTANCIAS ----------- */
 classDec
     : CLASS TYID ID L_CHAVE bind_list R_CHAVE
     ;
@@ -110,8 +95,6 @@ func_list
     | func_list func
     ;
 
-
-/* ----------- TIPOS ----------- */
 typeAnnot
     : tyJoin
     | type ARROW typeAnnot
@@ -119,7 +102,7 @@ typeAnnot
 
 tyJoin
     : type
-    | tyJoin '&' type
+    | tyJoin AND type
     ;
 
 type
@@ -136,22 +119,14 @@ btype
     | TYID
     ;
 
-/* ----------- BLOCOS ----------- */
 block
     : L_CHAVE cmd_list R_CHAVE
-    ;
-
-stmtBlock
-    : block
-    | cmd
     ;
 
 cmd_list
     : /* vazio */
     | cmd_list cmd
     ;
-
-/* ----------- COMANDO ----------- */
 
 cmd
     : IF L_PARENTESE exp R_PARENTESE stmtBlock
@@ -162,29 +137,29 @@ cmd
     | ID L_PARENTESE exps_opt R_PARENTESE call_suffix SEMICOLON
     ;
 
-/* ----------- CHAMADA FUNCAO ----------- */
+stmtBlock
+    : block
+    | cmd
+    ;
 
 call_suffix
     : /* vazio */
-    | '<' lvalue lvalue_list '>'
+    | GE lvalue_list LT
     ;
 
 lvalue_list
-    : /* vazio */
+    : lvalue
     | lvalue_list COMMA lvalue
     ;
-
-/* ----------- LOOP ----------- */
 
 loopCond
     : ID COLON exp
     | exp
     ;
 
-/* ----------- EXPRESSOES ----------- */
 exp
     : exp operator exp
-    | '!' exp
+    | NEGACAO exp
     | '-' exp %prec UMINUS
     | TRUE_LIT
     | FALSE_LIT
@@ -203,28 +178,24 @@ new_suffix
     | L_COLCHETE exp R_COLCHETE
     ;
 
-/* ----------- OPERADORES ----------- */
 operator
     : ANDAND
     | EQ
     | NE
     | LT
     | LE
-    | GT
     | GE
-    | '+'
-    | '-'
-    | '*'
-    | '/'
-    | '%'
+    | MAIS
+    | MENOS
+    | MULT
+    | DIVISAO
+    | RESTO
     ;
-
-/* ----------- OUTROS ----------- */
 
 lvalue
     : ID
     | lvalue DOT lvalue
-    | L_COLCHETE exp R_COLCHETE
+    | lvalue L_COLCHETE exp R_COLCHETE
     ;
 
 exps
