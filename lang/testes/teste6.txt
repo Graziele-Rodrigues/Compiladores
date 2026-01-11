@@ -1,0 +1,7 @@
+main :: Void {
+    if(!(! p && ! q)) { 
+        return p;
+    }else{
+        return q;
+    }
+}

@@ -1,0 +1,4 @@
+main :: Void {
+    divmod(5, 2)<q, r>;
+    return;
+}

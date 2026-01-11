@@ -1,0 +1,4 @@
+main :: Void {
+    x = 10;
+    return;
+}

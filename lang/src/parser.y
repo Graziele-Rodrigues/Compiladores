@@ -17,36 +17,45 @@
     }
 }
 
-/* ---------- TOKENS ---------- */
+/* ------------ TOKENS ------------ */
 
 %token DATA CLASS INSTANCE FOR
 %token IF ELSE ITERATE RETURN_KW NEW
+
 %token TRUE_LIT FALSE_LIT NULL_LIT
 
-%token INT_TYPE CHAR_TYPE BOOL_TYPE FLOAT_TYPE VOID_TYPE
-%token INT FLOAT CHAR TYID ID
+%token INT_TYPE CHAR_TYPE BOOL_TYPE FLOAT_TYPE VOID_TYPE MAIN PRINT 
+%token TYID ID
+%token INT FLOAT CHAR
 
 %token DOUBLE_COLON ARROW COLON
-%token EQ NE LT LE GE
-%token ANDAND
-%token AND
-
-%token MAIS MENOS MULT DIVISAO  RESTO
-%token L_CHAVE R_CHAVE L_PARENTESE R_PARENTESE L_COLCHETE R_COLCHETE
+%token ANDAND AND
+%token EQ NE LT GT LE GE
+%token MAIS MENOS MULT DIVISAO RESTO
+%token NEGACAO
 
 %token ATTR
 %token SEMICOLON COMMA DOT
 
-/* ---------- PRECEDÊNCIA ---------- */
+%token L_CHAVE R_CHAVE
+%token L_PARENTESE R_PARENTESE
+%token L_COLCHETE R_COLCHETE
+
+/* ------------ PRECEDÊNCIA ------------ */
 
 %left ANDAND
 %left EQ NE
-%nonassoc LT LE GE
+%nonassoc LT
 %left MAIS MENOS
-%left MULT DIV RESTO
+%left MULT DIVISAO RESTO
 %right NEGACAO UMINUS
 
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
+
 %%
+
+/* ------------ PROGRAMA ------------ */
 
 prog
     : /* vazio */
@@ -60,8 +69,10 @@ decl
     | instDec
     ;
 
+/* ------------ DATA ------------ */
+
 data
-    : DATA TYID '{' bind_list '}'
+    : DATA TYID L_CHAVE bind_list R_CHAVE
     ;
 
 bind_list
@@ -73,6 +84,8 @@ bind
     : ID DOUBLE_COLON typeAnnot SEMICOLON
     ;
 
+/* ------------ FUNÇÕES ------------ */
+
 func
     : ID id_list DOUBLE_COLON typeAnnot block
     ;
@@ -82,18 +95,24 @@ id_list
     | id_list ID
     ;
 
+/* ------------ CLASSES ------------ */
+
 classDec
     : CLASS TYID ID L_CHAVE bind_list R_CHAVE
     ;
 
+/* ------------ INSTÂNCIAS ------------ */
+
 instDec
-    : INSTANCE TYID FOR ID L_CHAVE func_list R_CHAVE
+    : INSTANCE TYID FOR btype L_CHAVE func_list R_CHAVE
     ;
 
 func_list
     : /* vazio */
     | func_list func
     ;
+
+/* ------------ TIPOS ------------ */
 
 typeAnnot
     : tyJoin
@@ -102,12 +121,12 @@ typeAnnot
 
 tyJoin
     : type
-    | tyJoin AND type
+    | type AND tyJoin
     ;
 
 type
-    : btype
-    | type L_COLCHETE R_COLCHETE
+    : type L_COLCHETE R_COLCHETE
+    | btype
     ;
 
 btype
@@ -115,9 +134,12 @@ btype
     | CHAR_TYPE
     | BOOL_TYPE
     | FLOAT_TYPE
-    | VOID_TYPE
     | TYID
+    | ID    /* confirmar professor - por conta teste4*/
+    | VOID_TYPE
     ;
+
+/* ------------ BLOCO ------------ */
 
 block
     : L_CHAVE cmd_list R_CHAVE
@@ -128,23 +150,27 @@ cmd_list
     | cmd_list cmd
     ;
 
-cmd
-    : IF L_PARENTESE exp R_PARENTESE stmtBlock
-    | IF L_PARENTESE exp R_PARENTESE stmtBlock ELSE stmtBlock
-    | ITERATE L_PARENTESE loopCond R_PARENTESE stmtBlock
-    | RETURN_KW exp_list SEMICOLON
-    | lvalue ATTR exp SEMICOLON
-    | ID L_PARENTESE exps_opt R_PARENTESE call_suffix SEMICOLON
-    ;
-
 stmtBlock
     : block
     | cmd
     ;
 
+/* ------------ COMANDOS ------------ */
+
+cmd
+    : IF L_PARENTESE exp R_PARENTESE stmtBlock %prec LOWER_THAN_ELSE
+    | IF L_PARENTESE exp R_PARENTESE stmtBlock ELSE stmtBlock
+    | ITERATE L_PARENTESE loopCond R_PARENTESE stmtBlock
+    | RETURN_KW exp_list_opt SEMICOLON
+    | lvalue ATTR exp SEMICOLON
+    | ID L_PARENTESE exps_opt R_PARENTESE call_suffix SEMICOLON
+    ;
+
+/* ================= CHAMADA ================= */
+
 call_suffix
     : /* vazio */
-    | GE lvalue_list LT
+    | LT lvalue_list GT
     ;
 
 lvalue_list
@@ -152,22 +178,55 @@ lvalue_list
     | lvalue_list COMMA lvalue
     ;
 
-loopCond
-    : ID COLON exp
-    | exp
-    ;
+/* ------------ EXPRESSOES ------------ */
 
 exp
-    : exp operator exp
-    | NEGACAO exp
-    | '-' exp %prec UMINUS
-    | TRUE_LIT
+    : exp_and
+    ;
+
+exp_and
+    : exp_and ANDAND exp_rel
+    | exp_rel
+    ;
+
+exp_rel
+    : exp_rel EQ exp_add
+    | exp_rel NE exp_add
+    | exp_rel LE exp_add
+    | exp_rel GE exp_add
+    | exp_rel LT exp_add
+    | exp_rel GT exp_add
+    | exp_add
+    ;
+
+exp_add
+    : exp_add MAIS exp_mul
+    | exp_add MENOS exp_mul
+    | exp_mul
+    ;
+
+exp_mul
+    : exp_mul MULT exp_un
+    | exp_mul DIVISAO exp_un
+    | exp_mul RESTO exp_un
+    | exp_un
+    ;
+
+exp_un
+    : NEGACAO exp_un
+    | MENOS exp_un %prec UMINUS
+    | exp_atom
+    ;
+
+exp_atom
+    : TRUE_LIT
     | FALSE_LIT
     | NULL_LIT
     | INT
     | FLOAT
     | CHAR
     | NEW type new_suffix
+    | ID L_PARENTESE exps_opt R_PARENTESE    /* confirmar professor se eh permitido */             
     | ID L_PARENTESE exps_opt R_PARENTESE L_COLCHETE exp R_COLCHETE
     | lvalue
     | L_PARENTESE exp R_PARENTESE
@@ -178,25 +237,16 @@ new_suffix
     | L_COLCHETE exp R_COLCHETE
     ;
 
-operator
-    : ANDAND
-    | EQ
-    | NE
-    | LT
-    | LE
-    | GE
-    | MAIS
-    | MENOS
-    | MULT
-    | DIVISAO
-    | RESTO
-    ;
+/* ------------ LVALUE ------------ */
 
 lvalue
     : ID
-    | lvalue DOT lvalue
+    | lvalue DOT ID
     | lvalue L_COLCHETE exp R_COLCHETE
     ;
+
+
+/* ------------ LISTAS ------------ */
 
 exps
     : exp
@@ -208,9 +258,20 @@ exps_opt
     | exps
     ;
 
-exp_list
+exp_list_opt
     : /* vazio */
+    | exp_list
+    ;
+
+exp_list
+    : exp
     | exp_list exp
+    ;
+    
+
+loopCond
+    : ID COLON exp
+    | exp
     ;
 
 %%

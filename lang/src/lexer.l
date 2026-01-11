@@ -24,8 +24,8 @@ delim       [ \t\r]+
 letra       [A-Za-z]
 digito      [0-9]
 
-id          [a-z]({letra}|{digito}|_)*
-tyid        [A-Z]({letra}|{digito}|_)*
+tyid       [A-Z][A-Za-z0-9_]*
+id         [a-z][A-Za-z0-9_]*
 
 int_lit     {digito}+
 float_lit   ({digito}*"."{digito}+)
@@ -92,9 +92,8 @@ char_lit    \'([^\\'\n\r]|\\[nrtb'\\]|\\[0-9]{3})\'
 {tyid}      { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::TYID; }
 {id}        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::ID; }
 
-SEMICOLON
-":"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::COLON; }
 "::"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::DOUBLE_COLON; }
+":"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::COLON; }
 "->"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::ARROW; }
 
 "=="    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::EQ; }
@@ -102,11 +101,11 @@ SEMICOLON
 "<="    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::LE; }
 ">="    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::GE; }
 "<"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::LT; }
+">"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::GT; }
 
 "&&"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::ANDAND; }
 "!"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::NEGACAO; }
 "&"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::AND; }
-"-"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::AND; }
 
 "="     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::ATTR; }
 
