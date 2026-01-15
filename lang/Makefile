@@ -9,49 +9,61 @@ FLEX = flex
 BISON = bison
 
 # Diretórios
-SRC_DIR = src
+SRC_DIR   = src
 BUILD_DIR = build
 
-# Arquivos gerados
-LEX_CPP = $(BUILD_DIR)/lexer.cpp
-PARSER_CPP = $(BUILD_DIR)/parser.cpp
-PARSER_HPP = $(BUILD_DIR)/parser.hpp
+# Arquivos gerados pelo Flex/Bison
+LEX_CPP     = $(BUILD_DIR)/lexer.cpp
+PARSER_CPP  = $(BUILD_DIR)/parser.cpp
+PARSER_HPP  = $(BUILD_DIR)/parser.hpp
 
 # Executável final
 TARGET = compiler
 
-# Fontes C++
-SRCS = \
+
+CPP_SRCS = \
+    $(SRC_DIR)/main.cpp \
+    $(SRC_DIR)/ast/interpreter.cpp
+
+GEN_SRCS = \
     $(LEX_CPP) \
-    $(PARSER_CPP) \
-    $(SRC_DIR)/main.cpp
+    $(PARSER_CPP)
 
-OBJS = $(SRCS:.cpp=.o)
+SRCS = $(CPP_SRCS) $(GEN_SRCS)
 
-# Regra padrão
+
+OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(CPP_SRCS)) \
+       $(patsubst $(BUILD_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(GEN_SRCS))
+
 all: $(BUILD_DIR) $(TARGET)
 
-# Cria diretório build
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR) $(BUILD_DIR)/ast
 
-# Gera parser.cpp e parser.hpp
-$(PARSER_CPP) $(PARSER_HPP): $(SRC_DIR)/parser.y
+# ---------- Flex / Bison ----------
+
+$(PARSER_CPP) $(PARSER_HPP): $(SRC_DIR)/parser.y | $(BUILD_DIR)
 	$(BISON) -d -o $(PARSER_CPP) $<
 
-# Gera lexer.cpp (DEPENDE do parser.hpp)
-$(LEX_CPP): $(SRC_DIR)/lexer.l $(PARSER_HPP)
+$(LEX_CPP): $(SRC_DIR)/lexer.l $(PARSER_HPP) | $(BUILD_DIR)
 	$(FLEX) -o $@ $<
 
-# Linkagem
+# ---------- Compilação ----------
+
+$(BUILD_DIR)/%.o: $(BUILD_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -I$(SRC_DIR) -I$(BUILD_DIR) -c $< -o $@
+
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(PARSER_HPP)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -I$(SRC_DIR) -I$(BUILD_DIR) -c $< -o $@
+
+
+# ---------- Link ----------
+
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-# Compilação
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -I$(SRC_DIR) -I$(BUILD_DIR) -c $< -o $@
 
-# Limpeza
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
 

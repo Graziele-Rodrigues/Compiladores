@@ -8,6 +8,8 @@
 
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "ast/ast.hpp"
+#include "ast/interpreter.hpp"
 
 void print_help()
 {
@@ -58,7 +60,13 @@ int main(int argc, char** argv)
     }
 
     Lexer lexer(&input);
-    yy::Parser parser(lexer);
+    if (option == "-syn"){
+        lexer.debug_tokens = true;
+    } else {
+        lexer.debug_tokens = false;
+    }
+    std::shared_ptr<Program> ast;           // AST raiz
+    yy::Parser parser(lexer, ast);          // Parser com referência à AST
 
     int result = parser.parse();
 
@@ -73,17 +81,14 @@ int main(int argc, char** argv)
 
     /* ---------------- -i ---------------- */
     if (option == "-i") {
-        if (result != 0) {
-            std::cout << "rejected\n";
-            return result;
+        if (result != 0) { 
+            std::cout << "rejected\n"; return 1; 
+        } else {
+            Interpreter itp;
+            itp.loadProgram(*ast);
+            itp.runMain();
+            return 0;
         }
-
-        /* TODO:
-         * - construir AST
-         * - executar interpretador
-         */
-        std::cout << "accepted\n";
-        return 0;
     }
 
     print_help();

@@ -1,0 +1,5 @@
+main :: Void {
+    print('O');
+    print('K');
+    return;
+}

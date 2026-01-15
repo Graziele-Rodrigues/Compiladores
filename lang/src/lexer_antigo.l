@@ -6,45 +6,17 @@
 /* Graziele de Cassia Rodrigues - 21.1.8120 */
 
 #include <iostream>
-#include <string>
-#include <cstdlib>
-
 #include "parser.hpp"
-#include "lexer.hpp"
 
 int yylineno = 1;
 int yycolumn = 1;
 int token_start_column;
 
-#define YY_DECL int Lexer::yylex(void* yylval_void)
+#define YY_DECL int Lexer::yylex()
 
 #define PRINT_POS() \
-    if (debug_tokens) \
-        std::cout << "(" << yylineno << " ," << token_start_column << ") " << yytext << std::endl;
-
-static char parse_char_lit(const char* yytext) {
-    if (yytext[1] != '\\') return yytext[1];
-    char e = yytext[2];
-    switch (e) {
-        case 'n': return '\n';
-        case 'r': return '\r';
-        case 't': return '\t';
-        case 'b': return '\b';
-        case '\\': return '\\';
-        case '\'': return '\'';
-        default:
-            if (e >= '0' && e <= '9') {
-                int d1 = yytext[2] - '0';
-                int d2 = yytext[3] - '0';
-                int d3 = yytext[4] - '0';
-                int val = d1*64 + d2*8 + d3;
-                return static_cast<char>(val);
-            }
-            return e;
-    }
-}
+    std::cout << "(" << yylineno << " ," << token_start_column << ") " << yytext << std::endl;
 %}
-
 
 %x COMMENT
 
@@ -52,8 +24,8 @@ delim       [ \t\r]+
 letra       [A-Za-z]
 digito      [0-9]
 
-tyid        [A-Z][A-Za-z0-9_]*
-id          [a-z][A-Za-z0-9_]*
+tyid       [A-Z][A-Za-z0-9_]*
+id         [a-z][A-Za-z0-9_]*
 
 int_lit     {digito}+
 float_lit   ({digito}*"."{digito}+)
@@ -69,25 +41,25 @@ char_lit    \'([^\\'\n\r]|\\[nrtb'\\]|\\[0-9]{3})\'
 }
 
 
-"--".* { yycolumn += yyleng; }
+"--".* { /* comentário de linha */ }
 
 "\{-" {
-    token_start_column = yycolumn;
-    yycolumn += yyleng;
     BEGIN(COMMENT);
 }
 
 <COMMENT>"-\}" {
-    yycolumn += yyleng;
     BEGIN(INITIAL);
 }
+
 <COMMENT>\n {
     yylineno++;
     yycolumn = 1;
 }
+
 <COMMENT>. {
     yycolumn++;
 }
+
 
 "data"      { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::DATA; }
 "class"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::CLASS; }
@@ -112,44 +84,16 @@ char_lit    \'([^\\'\n\r]|\\[nrtb'\\]|\\[0-9]{3})\'
 "Void"      { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::VOID_TYPE; }
 
 
-{float_lit} {
-    token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS();
-    auto* yylval = static_cast<yy::Parser::semantic_type*>(yylval_void);
-    yylval->emplace<double>(std::stod(yytext));
-    return yy::Parser::token::FLOAT;
-}
+{float_lit} { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::FLOAT; }
+{int_lit}   { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::INT; }
+{char_lit}  { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::CHAR; }
 
-{int_lit} {
-    token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS();
-    auto* yylval = static_cast<yy::Parser::semantic_type*>(yylval_void);
-    yylval->emplace<long long>(std::stoll(yytext));
-    return yy::Parser::token::INT;
-}
 
-{char_lit} {
-    token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS();
-    auto* yylval = static_cast<yy::Parser::semantic_type*>(yylval_void);
-    yylval->emplace<char>(parse_char_lit(yytext));
-    return yy::Parser::token::CHAR;
-}
-
-{tyid} {
-    token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS();
-    auto* yylval = static_cast<yy::Parser::semantic_type*>(yylval_void);
-    yylval->emplace<std::string>(yytext);
-    return yy::Parser::token::TYID;
-}
-
-{id} {
-    token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS();
-    auto* yylval = static_cast<yy::Parser::semantic_type*>(yylval_void);
-    yylval->emplace<std::string>(yytext);
-    return yy::Parser::token::ID;
-}
-
+{tyid}      { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::TYID; }
+{id}        { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::ID; }
 
 "::"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::DOUBLE_COLON; }
-":"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::COLON; }
+":"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::COLON; }
 "->"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::ARROW; }
 
 "=="    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::EQ; }
@@ -161,7 +105,7 @@ char_lit    \'([^\\'\n\r]|\\[nrtb'\\]|\\[0-9]{3})\'
 
 "&&"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::ANDAND; }
 "!"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::NEGACAO; }
-"&"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::AND; }
+"&"    { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::AND; }
 
 "="     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::ATTR; }
 
@@ -171,14 +115,13 @@ char_lit    \'([^\\'\n\r]|\\[nrtb'\\]|\\[0-9]{3})\'
 
 "("     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::L_PARENTESE; }
 ")"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::R_PARENTESE; }
-"{"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::L_CHAVE; }
+"{"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::L_CHAVE;}
 "}"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::R_CHAVE; }
 "["     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::L_COLCHETE; }
 "]"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::R_COLCHETE; }
-
-"+"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::MAIS; }
-"-"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::MENOS; }
-"*"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::MULT; }
+"+"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::MAIS;}
+"-"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::MENOS;}
+"*"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::MULT;}
 "/"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::DIVISAO; }
 "%"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::RESTO; }
 

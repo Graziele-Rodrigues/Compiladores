@@ -1,4 +1,3 @@
-/* Graziele de Cassia Rodrigues 21.1.8120 */
 #ifndef LEXER_HPP
 #define LEXER_HPP
 
@@ -8,8 +7,12 @@
 
 class Lexer : public yyFlexLexer {
 public:
-    Lexer(std::istream* in) : yyFlexLexer(in) {}
-    int yylex();
+    explicit Lexer(std::istream* in)
+        : yyFlexLexer(in), debug_tokens(false) {}
+
+    int yylex(void* yylval);
+
+    bool debug_tokens;
 };
 
 #endif

@@ -1,0 +1,7 @@
+main :: Void {
+    x = 10;
+    y = 10;
+    w = x % y;
+    print(w);
+    return;
+}
