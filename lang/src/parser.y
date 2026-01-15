@@ -171,13 +171,10 @@ id_list
     ;
 
 /* ------------ CLASSES ------------ */
-/* Você pode criar nós específicos depois; por enquanto só “engole” para não atrapalhar */
 
 classDec
     : CLASS TYID ID L_CHAVE bind_list R_CHAVE
       {
-        // Se quiser: criar um ClassDecl.
-        // Por enquanto, retornamos um Decl "genérico" (ou nullptr não é bom).
         $$ = std::make_shared<Decl>();
       }
     ;
@@ -187,8 +184,6 @@ classDec
 instDec
     : INSTANCE TYID FOR btype L_CHAVE func_list R_CHAVE
       {
-        // Se quiser: criar InstDecl.
-        // Por enquanto, retornamos um Decl genérico.
         $$ = std::make_shared<Decl>();
       }
     ;
@@ -198,7 +193,6 @@ func_list
       { $$ = {}; }
     | func_list func
       {
-        // se um dia você quiser guardar, pode converter FuncDecl em DeclPtr
         $1.push_back($2);
         $$ = std::move($1);
       }
