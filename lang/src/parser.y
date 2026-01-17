@@ -26,22 +26,18 @@
 
 /* ------------ TOKENS ------------ */
 
-// Palavras-chave (sem valor semântico)
 %token DATA CLASS INSTANCE FOR
 %token IF ELSE ITERATE RETURN_KW NEW
 %token TRUE_LIT FALSE_LIT NULL_LIT
 
-// Tipos e palavras reservadas (se você não usa MAIN/PRINT como tokens, pode remover)
 %token INT_TYPE CHAR_TYPE BOOL_TYPE FLOAT_TYPE VOID_TYPE MAIN PRINT
 
-// Tokens com valor
 %token <std::string> TYID
 %token <std::string> ID
 %token <long long>   INT
 %token <double>      FLOAT
 %token <char>        CHAR
 
-// Símbolos
 %token DOUBLE_COLON ARROW COLON
 %token ANDAND AND
 %token EQ NE LT GT LE GE

@@ -2,8 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-// ---------- helpers de tipo ----------
-
+// ---------- conversões auxiliares ----------
 static long long toInt(const Value& v) {
   if (!v.is<long long>()) throw RuntimeError("Esperava Int");
   return v.as<long long>();

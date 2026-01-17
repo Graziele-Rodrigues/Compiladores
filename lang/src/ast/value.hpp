@@ -17,7 +17,6 @@ using Array    = std::vector<ValuePtr>;
 using Record   = std::unordered_map<std::string, ValuePtr>;
 
 struct Value {
-  // Agora Array/Record são ponteiros -> não há Value "incompleto" dentro do variant
   using V = std::variant<long long, double, bool, char, Null,
                          std::shared_ptr<Array>,
                          std::shared_ptr<Record>,

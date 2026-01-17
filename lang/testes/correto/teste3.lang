@@ -5,9 +5,8 @@ divmod a b :: Int -> Int -> Int & Int {
 }
 
 main :: Void {
-    i = 10;
-    iterate (i > 0) {
-        print(divmod(i, 3)[0]);
-        i = i - 1;
-    }
+    divmod(5, 2)<q, r>;
+    print(q);
+    print(r);
+    return;
 }
