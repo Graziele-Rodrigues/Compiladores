@@ -8,8 +8,8 @@
 
 #include "lexer.hpp"
 #include "parser.hpp"
-#include "ast/ast.hpp"
-#include "ast/interpreter.hpp"
+#include "ast/include/ast.hpp"
+#include "ast/include/interpreter.hpp"
 
 void print_help()
 {

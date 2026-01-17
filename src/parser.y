@@ -6,7 +6,7 @@
 
 %code requires {
     #include "lexer.hpp"
-    #include "ast/ast.hpp"
+    #include "ast/include/ast.hpp"
     #include <memory>
     #include <string>
     #include <vector>

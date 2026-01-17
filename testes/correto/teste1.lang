@@ -1,7 +1,20 @@
 main :: Void {
     x = 10;
     y = 10;
-    w = x % y;
-    print(w);
+    a = x % y;
+    b = x / y;
+    c = x * y;
+    d = x - y;
+    e = x + y;
+    print(a);
+    print('\n');
+    print(b);
+    print('\n');
+    print(c);
+    print('\n');
+    print(d);
+    print('\n');
+    print(e);
+    print('\n');
     return;
 }
