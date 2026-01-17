@@ -1,9 +1,10 @@
 ## Compilador da Linguagem lang2
 
-**Disciplina:** Compiladores
-**Ano/Semestre:** 2025/2
-**Aluno:** Graziele de Cassia Rodrigues
+**Disciplina:** Compiladores  
+**Ano/Semestre:** 2025/2  
+**Aluno:** Graziele de Cassia Rodrigues  
 **Matrícula:** 21.1.8120
+
 
 ## 📌 Descrição do Projeto
 
@@ -23,6 +24,38 @@ A implementação contempla:
 * **G++ (C++17)** — compilação do projeto
 * **Make** — automação do processo de build
 
+
+## 📦 Requisitos e Instalação
+
+Para compilar e executar o compilador da linguagem **lang2**, é necessário que os seguintes pacotes estejam instalados no sistema:
+
+* **Flex**
+* **Bison**
+* **Compilador C++ (G++ com suporte ao padrão C++17)**
+* **Make**
+
+### Instalação em sistemas Linux baseados em Debian/Ubuntu
+
+Execute os comandos abaixo no terminal:
+
+```bash
+sudo apt update
+sudo apt install flex bison build-essential
+```
+
+O pacote **build-essential** inclui o `g++`, o `make` e bibliotecas padrão necessárias para a compilação do projeto.
+
+### Verificação da instalação
+
+Após a instalação, é possível verificar se as ferramentas estão disponíveis executando:
+
+```bash
+flex --version
+bison --version
+g++ --version
+make --version
+```
+
 ## ⚙️ Compilação
 
 Para compilar o projeto, basta executar na raiz do diretório:
@@ -37,24 +70,23 @@ O comando irá gerar o executável:
 ./compiler
 ```
 
----
 
 ## ▶️ Execução
 
-### Execução versao 
+### Execução – versão
 
 ```bash
 ./compiler -v
 ```
-### Execução análise sintática
+
+### Execução – análise sintática
 
 ```bash
 ./compiler -syn arquivo.lang2
 ```
 
-### Execução interpretador
+### Execução – interpretador
 
 ```bash
 ./compiler -i arquivo.lang2
 ```
-
