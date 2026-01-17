@@ -3,6 +3,7 @@
 **Disciplina:** Compiladores
 **Ano/Semestre:** 2025/2
 **Aluno:** Graziele de Cassia Rodrigues
+**Matrícula:** 21.1.8120
 
 ## 📌 Descrição do Projeto
 
@@ -22,23 +23,6 @@ A implementação contempla:
 * **G++ (C++17)** — compilação do projeto
 * **Make** — automação do processo de build
 
-## 📂 Estrutura do Projeto
-
-```
-.
-├── src/
-│   ├── lexer.l        # Especificação léxica (Flex)
-│   ├── parser.y       # Gramática sintática (Bison)
-│   └── main.cpp       # Programa principal
-├── build/
-│   ├── lexer.cpp      # Código gerado pelo Flex
-│   ├── parser.cpp     # Código gerado pelo Bison
-│   └── parser.hpp     # Interface do parser
-├── Makefile
-└── README.md
-```
-
-
 ## ⚙️ Compilação
 
 Para compilar o projeto, basta executar na raiz do diretório:
@@ -57,11 +41,20 @@ O comando irá gerar o executável:
 
 ## ▶️ Execução
 
-### Execução padrão (análise sintática)
+### Execução versao 
 
 ```bash
-./compiler arquivo.lang2
+./compiler -v
+```
+### Execução análise sintática
+
+```bash
+./compiler -syn arquivo.lang2
 ```
 
-O compilador realiza a análise sintática do arquivo informado e imprime o resultado da análise.
+### Execução interpretador
+
+```bash
+./compiler -i arquivo.lang2
+```
 
