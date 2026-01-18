@@ -1,3 +1,5 @@
+/* Graziele de Cassia Rodrigues - 21.1.8120 */
+
 %language "c++"
 %defines
 %define api.parser.class {Parser}
@@ -229,7 +231,7 @@ btype
     | TYID
       { $$ = $1; }
     | ID
-      { $$ = $1; }  /* seu caso teste4 */
+      { $$ = $1; }  
     | VOID_TYPE
       { $$ = "Void"; }
     ;

@@ -1,3 +1,13 @@
+/*
+ * Arquivo: interpreter_helpers.hpp
+ * Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Este programa define funções auxiliares usadas pelo interpretador.
+ * Tais funções ajudam na conversão de valores para tipos primitivos.
+ */
+
 #pragma once
 #include "runtime.hpp"
 

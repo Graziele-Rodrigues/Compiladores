@@ -1,3 +1,14 @@
+/*
+ * Arquivo: value.hpp
+ * Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Este programa define a estrutura Value para representar valores em tempo de execução
+ * e funções auxiliares para manipular esses valores.
+ */
+
+
 #pragma once
 #include <variant>
 #include <string>
@@ -37,7 +48,6 @@ struct Value {
 
 inline bool isNull(const Value& x) { return x.is<Null>(); }
 
-// helpers: detectar array/record sem expor tipo no resto
 inline bool isArray(const Value& x){ return x.is<std::shared_ptr<Array>>(); }
 inline bool isRecord(const Value& x){ return x.is<std::shared_ptr<Record>>(); }
 

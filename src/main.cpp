@@ -1,5 +1,9 @@
-/* Graziele de Cassia Rodrigues
- * Matrícula: 21.1.8120
+/* Arquivo: main.cpp
+ * Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Função principal do compilador.
  */
 
 #include <iostream>

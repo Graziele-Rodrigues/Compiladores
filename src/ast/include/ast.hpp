@@ -1,3 +1,19 @@
+/*
+ * Arquivo: ast.hpp
+ * Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Este programa define os nós do AST (Árvore de Sintaxe Abstrata)
+ * com estruturas de dados em C++ para uma linguagem de programação
+ * depois da análise sintática com o parser.y
+ * 
+ * Cada nó do AST é representado por uma estrutura (struct) específica,
+ * e os ponteiros compartilhados (std::shared_ptr) são usados para gerenciar
+ * a memória dos nós do AST.
+ * 
+ */
+
 #pragma once
 #include <memory>
 #include <string>
@@ -5,9 +21,9 @@
 #include <unordered_map>
 #include <optional>
 
-struct SrcPos { int line=0, col=0; };
+struct SrcPos { int line=0, col=0; }; // posição no código-fonte
 
-// ---------- ForwaQrd ----------
+// ---------- Forward Declarations ----------
 struct Expr; struct Cmd; struct LValue;
 using ExprPtr = std::shared_ptr<Expr>;
 using CmdPtr  = std::shared_ptr<Cmd>;
@@ -21,16 +37,16 @@ struct Program {
   std::vector<DeclPtr> decls;
 };
 
+// data TYID { field1: TYPE1, field2: TYPE2, ... }
 struct DataDecl : Decl {
-  std::string typeName; // TYID
-  // campo -> tipo (você pode guardar string do tipo por enquanto)
+  std::string typeName; 
   std::vector<std::pair<std::string,std::string>> fields;
 };
 
+// func ID(param1: TYPE1, param2: TYPE2, ...): RETTYPE { ... }
 struct FuncDecl : Decl {
   std::string name;
   std::vector<std::string> params; // {ID}
-  // se quiser: guardar a anotação de tipo como string ou árvore de tipos
   std::string typeAnnotText;
   CmdPtr body; // bloco
 };
@@ -58,14 +74,17 @@ struct LIndex : LValue {
 // ---------- Expr ----------
 struct Expr { SrcPos pos; virtual ~Expr() = default; };
 
-struct EInt   : Expr { long long v; explicit EInt(long long x):v(x){} };
+// constantes/literais
+struct EInt   : Expr { long long v; explicit EInt(long long x):v(x){} }; 
 struct EFloat : Expr { double v; explicit EFloat(double x):v(x){} };
 struct EChar  : Expr { char v; explicit EChar(char x):v(x){} };
 struct EBool  : Expr { bool v; explicit EBool(bool x):v(x){} };
 struct ENull  : Expr { };
 
+// variável
 struct EVar   : Expr { std::string name; explicit EVar(std::string n):name(std::move(n)){} };
 
+// expressões unárias e binárias
 struct EUnary : Expr {
   enum Op { Neg, Not } op;
   ExprPtr e;
@@ -78,22 +97,21 @@ struct EBinary : Expr {
   EBinary(Op o, ExprPtr a, ExprPtr b):op(o),l(std::move(a)),r(std::move(b)){}
 };
 
-// new type [exp]?
+// new TYPE[expr]  ou  new TYPE
 struct ENew : Expr {
   std::string typeName;          // "Int"/"Char"/TYID etc (btype/type)
-  std::optional<ExprPtr> size;   // se existir [exp]
+  std::optional<ExprPtr> size;   
   ENew(std::string t, std::optional<ExprPtr> s) : typeName(std::move(t)), size(std::move(s)) {}
 };
 
-// chamada como expressão: ID(args)[idx] OU (no seu parser também ID(args) puro)
+// chamada de função: call NAME(args...)  ou  call NAME(args...)[retIndex]
 struct ECall : Expr {
   std::string name;
   std::vector<ExprPtr> args;
-  // se você quiser suportar “pegar retorno k”, coloca indexOpt
   std::optional<ExprPtr> retIndex;
 };
 
-// lvalue como expressão
+// LValue como expressão, por exemplo, para leitura de valor array[i] ou obj.field
 struct ELValue : Expr { LValPtr lv; explicit ELValue(LValPtr x):lv(std::move(x)){} };
 
 // ---------- Cmd ----------
@@ -117,5 +135,5 @@ struct CReturn : Cmd { std::vector<ExprPtr> exps; };
 struct CCallStmt : Cmd {
   std::string name;
   std::vector<ExprPtr> args;
-  std::vector<LValPtr> rets; // < lvalues... > (pode ser vazio)
+  std::vector<LValPtr> rets; 
 };

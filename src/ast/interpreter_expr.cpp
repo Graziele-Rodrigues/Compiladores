@@ -1,3 +1,11 @@
+/* Arquivo: interpreter_expr.cpp
+* Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Implementação da avaliação de expressões.
+ */
+
 #include "include/interpreter.hpp"
 #include "include/interpreter_helpers.hpp"
 
@@ -6,23 +14,27 @@ using interp_detail::toFloat;
 using interp_detail::toBool;
 
 Value Interpreter::evalExpr(Env& env, const ExprPtr& e) {
-  if (dynamic_cast<ENull*>(e.get())) return Value::makeNull();
+  // literais retornam Value diretamente
+  if (dynamic_cast<ENull*>(e.get())) return Value::makeNull(); 
 
-  if (auto x = dynamic_cast<EInt*>(e.get()))   return Value{ (long long)x->v };
+  if (auto x = dynamic_cast<EInt*>(e.get()))   return Value{ (long long)x->v }; 
   if (auto x = dynamic_cast<EFloat*>(e.get())) return Value{ (double)x->v };
   if (auto x = dynamic_cast<EChar*>(e.get()))  return Value{ (char)x->v };
   if (auto x = dynamic_cast<EBool*>(e.get()))  return Value{ (bool)x->v };
 
-  if (auto x = dynamic_cast<EVar*>(e.get())) {
+  // variável: obtém valor do ambiente
+  if (auto x = dynamic_cast<EVar*>(e.get())) { 
     return env.get(x->name);
   }
-
+  
+  // lvalue: obtém referência e retorna valor
   if (auto x = dynamic_cast<ELValue*>(e.get())) {
     LRef r = evalLValueRef(env, x->lv);
     if (!r.slot) throw RuntimeError("ELValue invalido");
     return *r.slot;
   }
 
+  // operadores unários e binários
   if (auto x = dynamic_cast<EUnary*>(e.get())) {
     Value v = evalExpr(env, x->e);
     if (x->op == EUnary::Not) return Value{ !toBool(v) };
@@ -34,8 +46,8 @@ Value Interpreter::evalExpr(Env& env, const ExprPtr& e) {
     throw RuntimeError("Unary op desconhecido");
   }
 
+  // operadores aritméticos, comparadores e lógicos
   if (auto x = dynamic_cast<EBinary*>(e.get())) {
-    // curto-circuito correto do &&
     if (x->op == EBinary::AndAnd) {
       bool lb = toBool(evalExpr(env, x->l));
       if (!lb) return Value{ false };
@@ -139,6 +151,7 @@ Value Interpreter::evalExpr(Env& env, const ExprPtr& e) {
     throw RuntimeError("Binary op desconhecido");
   }
 
+  // criação de novo objeto (array/record/primitivo)
   if (auto x = dynamic_cast<ENew*>(e.get())) {
     std::optional<long long> size;
     if (x->size.has_value()) {
@@ -148,6 +161,7 @@ Value Interpreter::evalExpr(Env& env, const ExprPtr& e) {
     return newValue(x->typeName, size);
   }
 
+  // chamada de função
   if (auto x = dynamic_cast<ECall*>(e.get())) {
     std::vector<Value> args;
     args.reserve(x->args.size());

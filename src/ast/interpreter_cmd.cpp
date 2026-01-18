@@ -1,3 +1,11 @@
+/* Arquivo: interpreter_cmd.cpp
+ * Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Implementação da execução de comandos.
+ */
+
 #include "include/interpreter.hpp"
 #include "include/interpreter_helpers.hpp"
 
@@ -5,17 +13,19 @@ using interp_detail::toInt;
 using interp_detail::toBool;
 
 void Interpreter::execCmd(Env& env, const CmdPtr& c) {
+
+  // Se for bloco, executa cada comando sequencialmente
   if (auto b = dynamic_cast<CBlock*>(c.get())) {
     for (auto& cmd : b->cs) execCmd(env, cmd);
     return;
   }
 
+  // Atribuição
   if (auto a = dynamic_cast<CAssign*>(c.get())) {
     LRef lhs = evalLValueRef(env, a->lhs);
     if (!lhs.slot) throw RuntimeError("Atribuicao em lvalue invalido");
     Value rhs = evalExpr(env, a->rhs);
 
-    // regra: se rhs é Addr, copia conteudo do heap
     if (rhs.is<Addr>()) {
       Value& hv = heap.atAddr(rhs.as<Addr>().a);
       *lhs.slot = hv;
@@ -24,7 +34,8 @@ void Interpreter::execCmd(Env& env, const CmdPtr& c) {
     }
     return;
   }
-
+  
+  // If-Then-Else
   if (auto i = dynamic_cast<CIf*>(c.get())) {
     bool cond = toBool(evalExpr(env, i->cond));
     if (cond) execCmd(env, i->thenC);
@@ -32,10 +43,10 @@ void Interpreter::execCmd(Env& env, const CmdPtr& c) {
     return;
   }
 
+  // Iterate
   if (auto it = dynamic_cast<CIterate*>(c.get())) {
     Value base = evalExpr(env, it->expr);
 
-    // se for Addr -> deref
     Value* basePtr = &base;
     if (base.is<Addr>()) basePtr = &heap.atAddr(base.as<Addr>().a);
 
@@ -60,13 +71,14 @@ void Interpreter::execCmd(Env& env, const CmdPtr& c) {
     for (size_t ic = 0; ic < arr.size(); ++ic) {
       if (it->itVar.has_value()) {
         if (!arr[ic]) throw RuntimeError("Elemento nulo interno");
-        env.set(*it->itVar, *arr[ic]); // i recebe o elemento
+        env.set(*it->itVar, *arr[ic]); 
       }
       execCmd(env, it->body);
     }
     return;
   }
 
+  // Return
   if (auto r = dynamic_cast<CReturn*>(c.get())) {
     std::vector<Value> vals;
     vals.reserve(r->exps.size());
@@ -74,6 +86,7 @@ void Interpreter::execCmd(Env& env, const CmdPtr& c) {
     throw ReturnSignal{ std::move(vals) };
   }
 
+  // CallStmt, com possível atribuição de retornos
   if (auto cs = dynamic_cast<CCallStmt*>(c.get())) {
     std::vector<Value> args;
     args.reserve(cs->args.size());

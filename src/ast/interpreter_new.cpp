@@ -1,3 +1,11 @@
+/* Arquivo: interpreter_new.cpp
+ * Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Implementação da alocação de novos valores.
+ */
+
 #include "include/interpreter.hpp"
 #include "include/interpreter_helpers.hpp"
 

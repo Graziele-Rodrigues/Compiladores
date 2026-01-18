@@ -1,3 +1,11 @@
+/* Arquivo: lexer.hpp
+ * Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Definição da classe Lexer.
+ */
+
 #ifndef LEXER_HPP
 #define LEXER_HPP
 

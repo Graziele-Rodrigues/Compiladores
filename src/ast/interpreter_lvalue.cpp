@@ -1,14 +1,26 @@
+/* Arquivo: interpreter_lvalue.cpp
+ * Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Implementação da avaliação de lvalues.
+ * Lado esquerdo de atribuições e acesso a campos/índices.
+ */
+
 #include "include/interpreter.hpp"
 #include "include/interpreter_helpers.hpp"
 
 using interp_detail::toInt;
 
 LRef Interpreter::evalLValueRef(Env& env, const LValPtr& lv) {
+
+  // variável
   if (auto v = dynamic_cast<LVar*>(lv.get())) {
-    Value& slot = env.locals[v->name]; // cria se nao existir
+    Value& slot = env.locals[v->name]; // cria se nao existir pega referência direta
     return LRef{ &slot };
   }
-
+  
+  // acesso a campo de record (ex: p.campo): resolve o lvalue base,
   if (auto f = dynamic_cast<LField*>(lv.get())) {
     LRef baseRef = evalLValueRef(env, f->base);
     if (!baseRef.slot) throw RuntimeError("LField base invalida");
@@ -25,6 +37,7 @@ LRef Interpreter::evalLValueRef(Env& env, const LValPtr& lv) {
     return LRef{ it->second.get() };
   }
 
+  // lida com índice de array
   if (auto idx = dynamic_cast<LIndex*>(lv.get())) {
     LRef baseRef = evalLValueRef(env, idx->base);
     if (!baseRef.slot) throw RuntimeError("LIndex base invalida");

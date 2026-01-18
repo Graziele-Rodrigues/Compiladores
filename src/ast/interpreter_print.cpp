@@ -1,3 +1,11 @@
+/* Arquivo: interpreter_print.cpp
+ * Autor: Graziele Cassia Rodrigues
+ * Matricula: 21.1.8120
+ *
+ * Descrição:
+ * Implementação da impressão de valores.
+ */
+
 #include "include/interpreter.hpp"
 #include <iostream>
 
