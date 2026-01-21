@@ -1,0 +1,7 @@
+f x y :: Int {
+  return x;
+}
+
+main :: Void {
+  print(f(10)[0]);   
+}

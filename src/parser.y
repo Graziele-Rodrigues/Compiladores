@@ -72,7 +72,7 @@
 %type <std::vector<std::pair<std::string,std::string>>> bind_list
 %type <std::pair<std::string,std::string>> bind
 %type <std::vector<std::string>> id_list
-%type <std::vector<DeclPtr>> func_list   /* não precisa, mas deixo caso queira */
+%type <std::vector<DeclPtr>> func_list
 
 %type <CmdPtr> block cmd stmtBlock
 %type <std::vector<CmdPtr>> cmd_list
@@ -173,7 +173,8 @@ id_list
 classDec
     : CLASS TYID ID L_CHAVE bind_list R_CHAVE
       {
-        $$ = std::make_shared<Decl>();
+        // enquanto ClassDecl não está implementado
+        $$ = std::make_shared<DummyDecl>();
       }
     ;
 
@@ -182,7 +183,8 @@ classDec
 instDec
     : INSTANCE TYID FOR btype L_CHAVE func_list R_CHAVE
       {
-        $$ = std::make_shared<Decl>();
+        // enquanto InstanceDecl não está implementado
+        $$ = std::make_shared<DummyDecl>();
       }
     ;
 
@@ -231,7 +233,7 @@ btype
     | TYID
       { $$ = $1; }
     | ID
-      { $$ = $1; }  
+      { $$ = $1; }
     | VOID_TYPE
       { $$ = "Void"; }
     ;
