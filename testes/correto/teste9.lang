@@ -1,0 +1,15 @@
+main :: Void {
+    buff = new Char[10];
+
+    buff[0] = 'H';
+    buff[1] = 'e';
+    buff[2] = 'l';
+    buff[3] = 'l';
+    buff[4] = 'o';
+    buff[5] = '!';
+    buff[6] = '\n';
+
+    printb(buff, 0, 7);   
+    printb(buff, 2, 4);   
+    print('\n');
+}

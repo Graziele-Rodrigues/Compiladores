@@ -25,6 +25,10 @@ struct Interpreter {
   std::unordered_map<std::string, FuncDecl*> funcs; // definições de funções
 
   void prim_print(const Value& v);  // função primitiva de impressão
+  void prim_printb(const Value& buff, const Value& start, const Value& len); // função primitiva de impressão de buffer
+  Value prim_read(); // função primitiva de leitura
+  Value prim_readb(const Value& buff, const Value& start, const Value& len); // função primitiva de leitura de buffer
+
 
   void loadProgram(const Program& p); // carrega definições do programa
   void runMain(); // executa a função main

@@ -16,6 +16,24 @@ std::vector<Value> Interpreter::callFunction(Env& caller, const std::string& nam
     prim_print(args[0]);
     return {};
   }
+  
+  if (name == "printb") {
+    if (args.size() != 3) throw RuntimeError("printb espera 3 argumentos");
+    prim_printb(args[0], args[1], args[2]);
+    return {};
+  }
+
+  if (name == "read") {
+    if (args.size() != 0) throw RuntimeError("read espera 0 argumentos");
+    Value c = prim_read();
+    return { c };
+  }
+
+  if (name == "readb") {
+    if (args.size() != 3) throw RuntimeError("readb espera 3 argumentos");
+    Value n = prim_readb(args[0], args[1], args[2]);
+    return { n };
+  }
 
   // funções definidas pelo usuário
   auto it = funcs.find(name);

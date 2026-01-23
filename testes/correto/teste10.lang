@@ -1,0 +1,12 @@
+main :: Void {
+    --teste read e readb
+
+    c = read()[0];
+    print(c);
+    print('\n');
+
+    buff = new Char[16];
+    n = readb(buff, 0, 8)[0];   
+    printb(buff, 0, n);
+    print('\n');
+}
