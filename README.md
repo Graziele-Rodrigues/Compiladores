@@ -26,6 +26,32 @@ Os principais pontos a serem observados no projeto estão apresentados no fluxog
 * **G++ (C++17)** — compilação do projeto
 * **Make** — automação do processo de build
 
+## 📦 Instalação das Dependências
+
+Para compilar e executar o compilador da linguagem **lang2**, é necessário ter instalados os seguintes pacotes:
+
+- Compilador **C/C++ (GCC / G++)**
+- **Flex**
+- **Bison**
+- **Make**
+
+### 🔧 Instalação em sistemas Linux (Ubuntu/Debian)
+
+Execute os comandos abaixo no terminal:
+
+```bash
+sudo apt update
+sudo apt install build-essential flex bison make
+```
+### Verificação Instalação 
+
+```bash
+gcc --version
+g++ --version
+flex --version
+bison --version
+make --version
+```
 ## ⚙️ Compilação
 
 Para compilar o projeto, basta executar na raiz do diretório:
