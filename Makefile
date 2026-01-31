@@ -24,12 +24,13 @@ TARGET = compiler
 CPP_SRCS = \
     $(SRC_DIR)/main.cpp \
     $(SRC_DIR)/ast/interpreter_call.cpp \
-    $(SRC_DIR)/ast/interpreter_cmd.cpp \
-    $(SRC_DIR)/ast/interpreter_expr.cpp \
-    $(SRC_DIR)/ast/interpreter_lvalue.cpp \
     $(SRC_DIR)/ast/interpreter_new.cpp \
-    $(SRC_DIR)/ast/interpreter_print.cpp \
-    $(SRC_DIR)/ast/interpreter_program.cpp
+    $(SRC_DIR)/ast/interpreter_program.cpp \
+    $(SRC_DIR)/ast/cmd.cpp \
+    $(SRC_DIR)/ast/expr.cpp \
+    $(SRC_DIR)/ast/lvalue.cpp \
+    $(SRC_DIR)/ast/print.cpp \
+    $(SRC_DIR)/ast/read.cpp \
 
 GEN_SRCS = \
     $(LEX_CPP) \

@@ -1,0 +1,10 @@
+
+f x :: Int -> Void {
+   y = 2*x  + 1;
+   print(y);
+}
+
+main :: Void {
+  z = 10;
+  f(z);
+}

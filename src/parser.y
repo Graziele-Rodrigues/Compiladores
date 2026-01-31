@@ -328,9 +328,9 @@ call_suffix
 lvalue_list
     : lvalue
       { $$ = { $1 }; }
-    | lvalue_list COMMA lvalue
+    | lvalue_list lvalue
       {
-        $1.push_back($3);
+        $1.push_back($2);
         $$ = std::move($1);
       }
     ;
@@ -350,21 +350,22 @@ exp_and
     ;
 
 exp_rel
-    : exp_rel EQ exp_add
-      { $$ = std::make_shared<EBinary>(EBinary::Eq, $1, $3); }
-    | exp_rel NE exp_add
-      { $$ = std::make_shared<EBinary>(EBinary::Ne, $1, $3); }
-    | exp_rel LE exp_add
-      { $$ = std::make_shared<EBinary>(EBinary::Le, $1, $3); }
-    | exp_rel GE exp_add
-      { $$ = std::make_shared<EBinary>(EBinary::Ge, $1, $3); }
-    | exp_rel LT exp_add
-      { $$ = std::make_shared<EBinary>(EBinary::Lt, $1, $3); }
-    | exp_rel GT exp_add
-      { $$ = std::make_shared<EBinary>(EBinary::Gt, $1, $3); }
-    | exp_add
-      { $$ = $1; }
-    ;
+  : exp_add
+    { $$ = $1; }
+  | exp_add EQ exp_add
+    { $$ = std::make_shared<EBinary>(EBinary::Eq, $1, $3); }
+  | exp_add NE exp_add
+    { $$ = std::make_shared<EBinary>(EBinary::Ne, $1, $3); }
+  | exp_add LE exp_add
+    { $$ = std::make_shared<EBinary>(EBinary::Le, $1, $3); }
+  | exp_add GE exp_add
+    { $$ = std::make_shared<EBinary>(EBinary::Ge, $1, $3); }
+  | exp_add LT exp_add
+    { $$ = std::make_shared<EBinary>(EBinary::Lt, $1, $3); }
+  | exp_add GT exp_add
+    { $$ = std::make_shared<EBinary>(EBinary::Gt, $1, $3); }
+  ;
+
 
 exp_add
     : exp_add MAIS exp_mul

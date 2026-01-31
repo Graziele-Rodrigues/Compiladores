@@ -37,7 +37,7 @@ static char parse_char_lit(const char* yytext) {
                 int d1 = yytext[2] - '0';
                 int d2 = yytext[3] - '0';
                 int d3 = yytext[4] - '0';
-                int val = d1*64 + d2*8 + d3;
+                int val = d1*100 + d2*10 + d3;   
                 return static_cast<char>(val);
             }
             return e;
@@ -133,6 +133,7 @@ char_lit    \'([^\\'\n\r]|\\[nrtb'\\]|\\[0-9]{3})\'
     return yy::Parser::token::CHAR;
 }
 
+
 {tyid} {
     token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS();
     auto* yylval = static_cast<yy::Parser::semantic_type*>(yylval_void);
@@ -183,10 +184,23 @@ char_lit    \'([^\\'\n\r]|\\[nrtb'\\]|\\[0-9]{3})\'
 "%"     { token_start_column = yycolumn; yycolumn += yyleng; PRINT_POS(); return yy::Parser::token::RESTO; }
 
 
+
+\"([^\\\n\"]|\\.)*\" {
+    std::cerr << "Erro léxico em (" << yylineno << "," << yycolumn
+              << "): literal string nao eh suportado: " << yytext << "\n";
+    std::exit(1);
+}
+
+\" {
+    std::cerr << "Erro léxico em (" << yylineno << "," << yycolumn
+              << "): aspas dupla inesperada\n";
+    std::exit(1);
+}
+
 . {
     std::cerr << "Erro léxico em (" << yylineno << "," << yycolumn
-              << "): caractere inválido '" << yytext << "'\n";
-    yycolumn++;
+              << "): caractere invalido '" << yytext << "'\n";
+    std::exit(1);
 }
 
 %%
