@@ -5,7 +5,7 @@ divmod a b :: Int -> Int -> Int & Int {
 }
 
 main :: Void {
-    divmod(5, 2)<q r>;
+    divmod(5, 2)<q, r>;
     print(q);
     print(r);
     return;

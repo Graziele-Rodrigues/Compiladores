@@ -27,19 +27,14 @@ struct ExecCmdVisitor final : AstVisitor {
     }
   }
 
-  void visit(CAssign& a) override {
-    LRef lhs = I.evalLValueRef(env, a.lhs);
-    if (!lhs.slot) throw RuntimeError("Atribuicao em lvalue invalido");
+ void visit(CAssign& a) override {
+  LRef lhs = I.evalLValueRef(env, a.lhs);
+  if (!lhs.slot) throw RuntimeError("Atribuicao em lvalue invalido");
 
-    Value rhs = I.evalExpr(env, a.rhs);
+  Value rhs = I.evalExpr(env, a.rhs);
+  *lhs.slot = rhs; // mantém Addr quando for referência
+}
 
-    if (rhs.is<Addr>()) {
-      Value& hv = I.heap.atAddr(rhs.as<Addr>().a);
-      *lhs.slot = hv;
-    } else {
-      *lhs.slot = rhs;
-    }
-  }
 
   void visit(CIf& c) override {
     bool cond = toBool(I.evalExpr(env, c.cond));
@@ -106,7 +101,7 @@ struct ExecCmdVisitor final : AstVisitor {
 
         if (rets[i].is<Addr>()) {
           Value& hv = I.heap.atAddr(rets[i].as<Addr>().a);
-          *ref.slot = hv;
+          *ref.slot = rets[i];
         } else {
           *ref.slot = rets[i];
         }

@@ -48,7 +48,6 @@ void Interpreter::prim_print(const Value& v) {
   else if (isArray(v)) std::cout << "<array>";
   else if (isRecord(v)) std::cout << "<record>";
   else std::cout << "<value>";
-  std::cout << "\n";
 }
 
 // ---------- printb :: Char[] -> Int -> Int -> Void ----------

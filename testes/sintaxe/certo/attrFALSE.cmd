@@ -1,3 +1,3 @@
 main :: Void {
-  x = 'a';
+  x = false;
 }

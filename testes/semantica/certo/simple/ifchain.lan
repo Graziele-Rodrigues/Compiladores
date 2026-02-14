@@ -1,0 +1,13 @@
+{-
+  Cuidado com a identação enganosa !
+-}
+main :: Void {
+   x = 0;
+   read()<x>;
+   if(x < 'J')
+     if('E' < x)
+         print('A');
+   else print('Z');
+   print('D');
+   print('\n');
+}
