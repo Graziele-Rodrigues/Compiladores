@@ -1,21 +1,23 @@
-#graziele de cassia rodrigues 21.1.8120
-
-#chmod +x testa_interpretacao.sh
-# ./testa_interpretacao.sh
-
+#!/bin/bash
+# Graziele de Cassia Rodrigues - 21.1.8120
+#
+# chmod +x testa_tipos.sh
+# ./testa_tipos.sh
 
 COMPILER=./compiler
 
 DIRS=(
-  "testes/semantica/certo/simple"
-  "testes/semantica/certo/function"
-  "testes/semantica/certo/full"
+  "testes/tipos/simple"
+  "testes/tipos/function"
+  "testes/tipos/full"
+  "testes/tipos/certo"
+  "testes/tipos/errado"
 )
 
-LOGDIR="logs_interpretacao"
-
+LOGDIR="logs_tipos"
 mkdir -p "$LOGDIR/out" "$LOGDIR/err"
-FAILED="$LOGDIR/falhas_interpretacao.txt"
+
+FAILED="$LOGDIR/falhas_tipos.txt"
 > "$FAILED"
 
 shopt -s nullglob
@@ -26,13 +28,9 @@ total_timeout=0
 
 TIMEOUT_SECS=3
 
-# entrada padrão para testes que chamam read()
-DEFAULT_INPUT="1 2 3 4 5 6 7 8 9 10
-"
-
 for DIR in "${DIRS[@]}"; do
   echo
-  echo "=== Testando INTERPRETAÇÃO (-i) em $DIR ==="
+  echo "=== Testando TIPOS (-ty) em $DIR ==="
 
   files=("$DIR"/*.lan)
 
@@ -45,21 +43,24 @@ for DIR in "${DIRS[@]}"; do
   fail=0
 
   for file in "${files[@]}"; do
-    base="$(basename "$file" .lan)"
-    out="$LOGDIR/out/$base.out"
-    err="$LOGDIR/err/$base.err"
+    # cria um "id" único por caminho, evitando sobrescrever logs
+    rel="${file%.lan}"
+    safe="${rel//\//_}"  # troca / por _
+    out="$LOGDIR/out/${safe}.out"
+    err="$LOGDIR/err/${safe}.err"
 
     echo "----------------------------------"
-    echo "Arquivo: $base.lan"
+    echo "Arquivo: $file"
 
-    # Se o teste usa read(), injeta stdin; senão fecha stdin.
-    if grep -q "read()" "$file"; then
-      printf "%s" "$DEFAULT_INPUT" | timeout "${TIMEOUT_SECS}s" "$COMPILER" -i "$file" >"$out" 2>"$err"
-    else
-      timeout "${TIMEOUT_SECS}s" "$COMPILER" -i "$file" </dev/null >"$out" 2>"$err"
-    fi
+    # Executa e:
+    # - mostra stdout (well typed / no typed) no terminal
+    # - salva stdout em $out
+    # - salva stderr em $err
+    timeout "${TIMEOUT_SECS}s" "$COMPILER" -ty "$file" </dev/null \
+      | tee "$out" 2>"$err"
 
-    code=$?
+    # OBS: com pipe, o exit code do compiler vem de PIPESTATUS[0]
+    code=${PIPESTATUS[0]}
 
     if [ $code -eq 124 ]; then
       echo "TIMEOUT (>${TIMEOUT_SECS}s) -> $err"
@@ -89,7 +90,7 @@ done
 
 echo
 echo "=================================="
-echo "TOTAL GERAL"
+echo "TOTAL GERAL (TIPOS -ty)"
 echo "Passaram: $total_pass"
 echo "Falharam: $total_fail"
 echo "  Timeouts: $total_timeout"
@@ -99,6 +100,6 @@ if [ -s "$FAILED" ]; then
   echo "Lista de falhas: $FAILED"
   cat "$FAILED"
 else
-  echo "Todos os testes passaram com sucesso!"
+  echo "Todos os testes de tipos passaram com sucesso!"
   rm -f "$FAILED"
 fi

@@ -65,6 +65,9 @@ struct EvalLValueRefVisitor final : AstVisitor {
   void visit(DataDecl&) override { throw RuntimeError("EvalLValueRefVisitor: decl inesperado"); }
   void visit(FuncDecl&) override { throw RuntimeError("EvalLValueRefVisitor: decl inesperado"); }
 
+  void visit(ClassDecl&) override {}
+  void visit(InstanceDecl&) override {}
+
   void visit(EInt&) override { throw RuntimeError("EvalLValueRefVisitor: expr inesperada"); }
   void visit(EFloat&) override { throw RuntimeError("EvalLValueRefVisitor: expr inesperada"); }
   void visit(EChar&) override { throw RuntimeError("EvalLValueRefVisitor: expr inesperada"); }

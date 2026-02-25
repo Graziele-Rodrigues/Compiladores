@@ -173,20 +173,25 @@ id_list
 classDec
     : CLASS TYID ID L_CHAVE bind_list R_CHAVE
       {
-        // enquanto ClassDecl não está implementado
-        $$ = std::make_shared<DummyDecl>();
+        auto c = std::make_shared<ClassDecl>();
+        c->className = $2;          
+        c->tyVar     = $3;          
+        c->methods   = std::move($5); 
+        $$ = c;
       }
     ;
 
 /* ------------ INSTÂNCIAS ------------ */
 
-instDec
-    : INSTANCE TYID FOR btype L_CHAVE func_list R_CHAVE
-      {
-        // enquanto InstanceDecl não está implementado
-        $$ = std::make_shared<DummyDecl>();
-      }
-    ;
+instDec 
+    : INSTANCE TYID FOR btype L_CHAVE func_list R_CHAVE { 
+      auto i = std::make_shared<InstanceDecl>(); 
+      i->className = $2; // TYID (nome da classe) 
+      i->forType = $4; // btype (tipo concreto: Int, Bool, TYID...) 
+      i->methods = std::move($6); 
+      $$ = i; 
+      } 
+      ;
 
 func_list
     : /* vazio */
@@ -328,9 +333,9 @@ call_suffix
 lvalue_list
     : lvalue
       { $$ = { $1 }; }
-    | lvalue_list lvalue
+    | lvalue_list COMMA lvalue
       {
-        $1.push_back($2);
+        $1.push_back($3);
         $$ = std::move($1);
       }
     ;

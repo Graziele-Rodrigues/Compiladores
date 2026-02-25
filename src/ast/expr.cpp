@@ -200,6 +200,9 @@ struct EvalExprVisitor final : AstVisitor {
   void visit(DataDecl&) override { throw RuntimeError("EvalExprVisitor: decl inesperado"); }
   void visit(FuncDecl&) override { throw RuntimeError("EvalExprVisitor: decl inesperado"); }
 
+  void visit(ClassDecl&) override {}
+  void visit(InstanceDecl&) override {}
+  
   void visit(LVar&) override { throw RuntimeError("EvalExprVisitor: lvalue inesperado"); }
   void visit(LField&) override { throw RuntimeError("EvalExprVisitor: lvalue inesperado"); }
   void visit(LIndex&) override { throw RuntimeError("EvalExprVisitor: lvalue inesperado"); }

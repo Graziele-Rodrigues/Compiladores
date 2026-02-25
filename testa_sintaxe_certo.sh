@@ -1,7 +1,7 @@
 #graziele de cassia rodrigues 21.1.8120
 
 # chmod +x testa_sintaxe_certo.sh
-#!/bin/bash
+# ./testa_sintaxe_certo.sh
 
 COMPILER=./compiler
 DIR=testes/sintaxe/certo

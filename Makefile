@@ -20,7 +20,6 @@ PARSER_HPP  = $(BUILD_DIR)/parser.hpp
 # Executável final
 TARGET = compiler
 
-
 CPP_SRCS = \
     $(SRC_DIR)/main.cpp \
     $(SRC_DIR)/ast/interpreter_call.cpp \
@@ -31,6 +30,8 @@ CPP_SRCS = \
     $(SRC_DIR)/ast/lvalue.cpp \
     $(SRC_DIR)/ast/print.cpp \
     $(SRC_DIR)/ast/read.cpp \
+    $(SRC_DIR)/types/types.cpp \
+    $(SRC_DIR)/checker/typechecker.cpp
 
 GEN_SRCS = \
     $(LEX_CPP) \
@@ -45,7 +46,7 @@ OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(CPP_SRCS)) \
 all: $(BUILD_DIR) $(TARGET)
 
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR) $(BUILD_DIR)/ast
+	mkdir -p $(BUILD_DIR) $(BUILD_DIR)/ast $(BUILD_DIR)/checker $(BUILD_DIR)/types
 
 # ---------- Flex / Bison ----------
 

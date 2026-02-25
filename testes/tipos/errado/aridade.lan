@@ -1,0 +1,7 @@
+soma a b :: Int -> Int -> Int {
+    return a + b;
+}
+
+main :: Void {
+    x = soma(1);
+}

@@ -1,0 +1,7 @@
+class Chr a {
+  tychr :: a -> Char;
+}
+
+main :: Void {
+  print('O');
+}

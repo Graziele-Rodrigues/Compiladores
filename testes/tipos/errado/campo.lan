@@ -1,0 +1,8 @@
+data Pessoa {
+    idade :: Int;
+}
+
+main :: Void {
+    p = new Pessoa;
+    p.altura = 1;
+}

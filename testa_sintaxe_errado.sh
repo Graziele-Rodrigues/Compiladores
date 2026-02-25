@@ -1,6 +1,6 @@
 #graziele de cassia rodrigues 21.1.8120
 # chmod +x testa_sintaxe_errado.sh
-#!/bin/bash
+# ./testa_sintaxe_errado.sh
 
 COMPILER=./compiler
 DIR=testes/sintaxe/errado

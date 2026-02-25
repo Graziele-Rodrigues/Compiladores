@@ -1,0 +1,13 @@
+class Chr a {
+  tychr :: a -> Char;
+}
+
+instance Chr for Int {
+  tychr v :: Int -> Char {
+    return 'I';
+  }
+}
+
+main :: Void {
+  print( tychr(0)[0] );
+}

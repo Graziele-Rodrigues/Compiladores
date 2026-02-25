@@ -15,11 +15,16 @@
 #include <utility>
 
 // pegar posição no código-fonte
-struct SrcPos { int line=0, col=0; };
+struct SrcPos {
+  int line = 0, col = 0;
+};
 
+// Forward decls
 struct Decl;
 struct DataDecl;
 struct FuncDecl;
+struct ClassDecl;
+struct InstanceDecl;
 
 struct LValue;
 struct LVar;
@@ -55,6 +60,10 @@ struct AstVisitor {
   virtual void visit(DataDecl&) = 0;
   virtual void visit(FuncDecl&) = 0;
 
+  // class/instance
+  virtual void visit(ClassDecl&) = 0;
+  virtual void visit(InstanceDecl&) = 0;
+
   // LValues
   virtual void visit(LVar&) = 0;
   virtual void visit(LField&) = 0;
@@ -88,13 +97,20 @@ using ExprPtr = std::shared_ptr<Expr>;
 using CmdPtr  = std::shared_ptr<Cmd>;
 using LValPtr = std::shared_ptr<LValue>;
 
-// declaracao do programa
+// Programa
 struct Program {
   std::vector<DeclPtr> decls;
 };
 
-// declaracao da definicao
+// ===========================
+// Decl (BASE) — AGORA COM POS
+// ===========================
 struct Decl {
+  SrcPos pos;
+
+  Decl() = default;
+  explicit Decl(SrcPos p) : pos(p) {}
+
   virtual ~Decl() = default;
   virtual void accept(AstVisitor& v) = 0;
 };
@@ -102,7 +118,10 @@ struct Decl {
 // data TYID { field :: TYPE; ... }
 struct DataDecl : Decl {
   std::string typeName;
-  std::vector<std::pair<std::string,std::string>> fields;
+  std::vector<std::pair<std::string, std::string>> fields;
+
+  DataDecl() = default;
+  explicit DataDecl(SrcPos p) : Decl(p) {}
 
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
@@ -114,47 +133,83 @@ struct FuncDecl : Decl {
   std::string typeAnnotText;
   CmdPtr body;
 
+  FuncDecl() = default;
+  explicit FuncDecl(SrcPos p) : Decl(p) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
-// Para decls ainda não implementadas (classDec/instanceDec)
-struct DummyDecl : Decl {
-  void accept(AstVisitor&) override {
-    // placeholder: nada a fazer
-  }
+// class TYID ID { methods... }
+struct ClassDecl : Decl {
+  std::string className;   // ex: "Chr"
+  std::string tyVar;       // ex: "a"
+  std::vector<std::pair<std::string, std::string>> methods; // (nomeMetodo, annot)
+
+  ClassDecl() = default;
+  explicit ClassDecl(SrcPos p) : Decl(p) {}
+
+  void accept(AstVisitor& vis) override { vis.visit(*this); }
+};
+
+// instance TYID for T { func_list }
+struct InstanceDecl : Decl {
+  std::string className;
+  std::string forType;               // tipo concreto como string (ex: Int, Pessoa, Char[])
+  std::vector<DeclPtr> methods;      // normalmente FuncDecls
+
+  InstanceDecl() = default;
+  explicit InstanceDecl(SrcPos p) : Decl(p) {}
+
+  void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 
-// LValue (base) para atribuição - L de esquerda
 struct LValue {
   SrcPos pos;
+
+  LValue() = default;
+  explicit LValue(SrcPos p) : pos(p) {}
+
   virtual ~LValue() = default;
   virtual void accept(AstVisitor& v) = 0;
 };
 
 struct LVar : LValue {
   std::string name;
-  explicit LVar(std::string n) : name(std::move(n)) {}
+
+  explicit LVar(std::string n) : LValue(), name(std::move(n)) {}
+  LVar(SrcPos p, std::string n) : LValue(p), name(std::move(n)) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 struct LField : LValue {
   LValPtr base;
   std::string field;
-  LField(LValPtr b, std::string f) : base(std::move(b)), field(std::move(f)) {}
+
+  LField(LValPtr b, std::string f) : LValue(), base(std::move(b)), field(std::move(f)) {}
+  LField(SrcPos p, LValPtr b, std::string f) : LValue(p), base(std::move(b)), field(std::move(f)) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 struct LIndex : LValue {
   LValPtr base;
   ExprPtr index;
-  LIndex(LValPtr b, ExprPtr i) : base(std::move(b)), index(std::move(i)) {}
+
+  LIndex(LValPtr b, ExprPtr i) : LValue(), base(std::move(b)), index(std::move(i)) {}
+  LIndex(SrcPos p, LValPtr b, ExprPtr i) : LValue(p), base(std::move(b)), index(std::move(i)) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
-// Expr (base)
+
 struct Expr {
   SrcPos pos;
+
+  Expr() = default;
+  explicit Expr(SrcPos p) : pos(p) {}
+
   virtual ~Expr() = default;
   virtual void accept(AstVisitor& v) = 0;
 };
@@ -162,35 +217,53 @@ struct Expr {
 // Literais
 struct EInt : Expr {
   long long v;
-  explicit EInt(long long x) : v(x) {}
+
+  explicit EInt(long long x) : Expr(), v(x) {}
+  EInt(SrcPos p, long long x) : Expr(p), v(x) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 struct EFloat : Expr {
   double v;
-  explicit EFloat(double x) : v(x) {}
+
+  explicit EFloat(double x) : Expr(), v(x) {}
+  EFloat(SrcPos p, double x) : Expr(p), v(x) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 struct EChar : Expr {
   char v;
-  explicit EChar(char x) : v(x) {}
+
+  explicit EChar(char x) : Expr(), v(x) {}
+  EChar(SrcPos p, char x) : Expr(p), v(x) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 struct EBool : Expr {
   bool v;
-  explicit EBool(bool x) : v(x) {}
+
+  explicit EBool(bool x) : Expr(), v(x) {}
+  EBool(SrcPos p, bool x) : Expr(p), v(x) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 struct ENull : Expr {
+  ENull() = default;
+  explicit ENull(SrcPos p) : Expr(p) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 struct EVar : Expr {
   std::string name;
-  explicit EVar(std::string n) : name(std::move(n)) {}
+
+  explicit EVar(std::string n) : Expr(), name(std::move(n)) {}
+  EVar(SrcPos p, std::string n) : Expr(p), name(std::move(n)) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
@@ -198,7 +271,10 @@ struct EVar : Expr {
 struct EUnary : Expr {
   enum Op { Neg, Not } op;
   ExprPtr e;
-  EUnary(Op o, ExprPtr x) : op(o), e(std::move(x)) {}
+
+  EUnary(Op o, ExprPtr x) : Expr(), op(o), e(std::move(x)) {}
+  EUnary(SrcPos p, Op o, ExprPtr x) : Expr(p), op(o), e(std::move(x)) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
@@ -206,7 +282,10 @@ struct EUnary : Expr {
 struct EBinary : Expr {
   enum Op { Add, Sub, Mul, Div, Mod, AndAnd, Eq, Ne, Lt, Le, Gt, Ge } op;
   ExprPtr l, r;
-  EBinary(Op o, ExprPtr a, ExprPtr b) : op(o), l(std::move(a)), r(std::move(b)) {}
+
+  EBinary(Op o, ExprPtr a, ExprPtr b) : Expr(), op(o), l(std::move(a)), r(std::move(b)) {}
+  EBinary(SrcPos p, Op o, ExprPtr a, ExprPtr b) : Expr(p), op(o), l(std::move(a)), r(std::move(b)) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
@@ -214,8 +293,12 @@ struct EBinary : Expr {
 struct ENew : Expr {
   std::string typeName;
   std::optional<ExprPtr> size;
+
   ENew(std::string t, std::optional<ExprPtr> s)
-    : typeName(std::move(t)), size(std::move(s)) {}
+    : Expr(), typeName(std::move(t)), size(std::move(s)) {}
+  ENew(SrcPos p, std::string t, std::optional<ExprPtr> s)
+    : Expr(p), typeName(std::move(t)), size(std::move(s)) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
@@ -225,31 +308,48 @@ struct ECall : Expr {
   std::vector<ExprPtr> args;
   std::optional<ExprPtr> retIndex;
 
+  ECall() = default;
+  explicit ECall(SrcPos p) : Expr(p) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 // LValue como expressão
 struct ELValue : Expr {
   LValPtr lv;
-  explicit ELValue(LValPtr x) : lv(std::move(x)) {}
+
+  explicit ELValue(LValPtr x) : Expr(), lv(std::move(x)) {}
+  ELValue(SrcPos p, LValPtr x) : Expr(p), lv(std::move(x)) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
-// Cmd (base)
 struct Cmd {
   SrcPos pos;
+
+  Cmd() = default;
+  explicit Cmd(SrcPos p) : pos(p) {}
+
   virtual ~Cmd() = default;
   virtual void accept(AstVisitor& v) = 0;
 };
 
 struct CBlock : Cmd {
   std::vector<CmdPtr> cs;
+
+  CBlock() = default;
+  explicit CBlock(SrcPos p) : Cmd(p) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 struct CAssign : Cmd {
   LValPtr lhs;
   ExprPtr rhs;
+
+  CAssign() = default;
+  explicit CAssign(SrcPos p) : Cmd(p) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
@@ -257,6 +357,10 @@ struct CIf : Cmd {
   ExprPtr cond;
   CmdPtr thenC;
   std::optional<CmdPtr> elseC;
+
+  CIf() = default;
+  explicit CIf(SrcPos p) : Cmd(p) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
@@ -264,11 +368,19 @@ struct CIterate : Cmd {
   std::optional<std::string> itVar;
   ExprPtr expr;
   CmdPtr body;
+
+  CIterate() = default;
+  explicit CIterate(SrcPos p) : Cmd(p) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
 struct CReturn : Cmd {
   std::vector<ExprPtr> exps;
+
+  CReturn() = default;
+  explicit CReturn(SrcPos p) : Cmd(p) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
 
@@ -276,5 +388,9 @@ struct CCallStmt : Cmd {
   std::string name;
   std::vector<ExprPtr> args;
   std::vector<LValPtr> rets;
+
+  CCallStmt() = default;
+  explicit CCallStmt(SrcPos p) : Cmd(p) {}
+
   void accept(AstVisitor& vis) override { vis.visit(*this); }
 };
