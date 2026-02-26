@@ -1,0 +1,23 @@
+main :: Void {
+   v = new Char[10];
+   v[0] = 'A';
+   v[1] = 'B';
+   v[2] = 'C';
+   v[3] = 'D';
+   v[4] = 'E';
+   v[5] = 'F';
+   v[6] = 'G';
+   v[7] = 'H';
+   v[8] = 'I';
+   v[9] = 'J';
+   x = 6;
+   i = 21;
+   iterate(i : x + 2){
+       print(v[i]);
+       print(' ');
+   }
+   print('.');
+   print('\n');
+   print(v[i]);
+   print('\n');
+}

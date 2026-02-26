@@ -1,0 +1,9 @@
+class Chr a {
+  tychr :: a -> Char;
+}
+
+-- NÃO tem: instance Chr for Bool
+
+main :: Void {
+  print( tychr(true)[0] );
+}

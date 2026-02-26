@@ -1,0 +1,5 @@
+main :: Void  {
+  iterate (10){
+     x = 10;
+  
+}

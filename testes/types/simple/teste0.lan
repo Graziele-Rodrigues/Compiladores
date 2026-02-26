@@ -1,0 +1,19 @@
+
+--Saída esperada:
+
+--*****
+--****
+--***
+--**
+--*
+
+
+main :: Void {
+   nlines = 5;
+   i = nlines;
+   iterate(nlines){
+     iterate(i) print('*');
+     i = i - 1;
+     print('\n');
+   }
+}

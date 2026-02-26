@@ -1,0 +1,27 @@
+main :: Void {
+   r1 = 'A' == '\065';
+   r2 = 'A' == 'A';
+   r3 = '\066' == 'A';
+
+   if(r1){
+      print('T');
+   }else{
+      print('F');
+   }
+
+   print('\n');
+   if(r2){
+      print('T');
+   }else{
+      print('F');
+   }
+   print('\n');
+
+   if(r3){
+      print('T');
+   }else{
+      print('F');
+   }
+   print('\n');
+
+}

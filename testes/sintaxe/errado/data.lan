@@ -1,0 +1,9 @@
+data Ponto {
+   x :: Char;
+    :: Float;
+}
+
+main x :: Ponto -> Void {
+   Ponto x;
+   print(x.x);
+}

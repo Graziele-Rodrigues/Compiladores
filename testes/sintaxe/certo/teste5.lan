@@ -1,0 +1,9 @@
+main :: Void {
+    p = false;
+    q = true;
+    if(!(!p && !q)){
+        print('P');
+    } else{
+        print('Q');
+    }
+}

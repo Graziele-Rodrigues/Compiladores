@@ -1,0 +1,5 @@
+main :: Void {
+    iterate(k : 5) {
+        print(k);   
+    }
+}

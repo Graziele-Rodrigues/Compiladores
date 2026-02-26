@@ -1,0 +1,9 @@
+main :: Void {
+   x = 10;
+   iterate(i : x + 2){
+       iterate(i) print('I');
+       print(' ');
+   }
+   print('.');
+   print('\n');
+}

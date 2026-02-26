@@ -1,0 +1,4 @@
+main :: Void {
+    v = new Int[10];
+    v[0] = 5;
+}
