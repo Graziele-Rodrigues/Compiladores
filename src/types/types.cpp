@@ -6,22 +6,22 @@ TypePtr Type::Float() { return std::make_shared<Type>(Type{TyFloat{}}); }
 TypePtr Type::Bool()  { return std::make_shared<Type>(Type{TyBool{}}); }
 TypePtr Type::Char()  { return std::make_shared<Type>(Type{TyChar{}}); }
 TypePtr Type::Void()  { return std::make_shared<Type>(Type{TyVoid{}}); }
+TypePtr Type::Null()  { return std::make_shared<Type>(Type{TyNull{}}); }
 TypePtr Type::User(std::string name) { return std::make_shared<Type>(Type{TyUser{std::move(name)}}); }
 TypePtr Type::Array(TypePtr elem) { return std::make_shared<Type>(Type{TyArray{std::move(elem)}}); }
 TypePtr Type::Tuple(std::vector<TypePtr> elems) { return std::make_shared<Type>(Type{TyTuple{std::move(elems)}}); }
-TypePtr Type::Null()  { return std::make_shared<Type>(Type{TyNull{}}); }
 TypePtr Type::Var(std::string name) { return std::make_shared<Type>(Type{TyVar{std::move(name)}}); }
 
-bool isVar(const TypePtr& t) { 
-  return t && std::holds_alternative<TyVar>(t->v); 
+bool isVar(const TypePtr& t) {
+  return t && std::holds_alternative<TyVar>(t->v);
 }
 
 bool isPrimitive(const TypePtr& t) {
   if (!t) return false;
-  return std::holds_alternative<TyInt>(t->v) ||
+  return std::holds_alternative<TyInt>(t->v)   ||
          std::holds_alternative<TyFloat>(t->v) ||
-         std::holds_alternative<TyBool>(t->v) ||
-         std::holds_alternative<TyChar>(t->v) ||
+         std::holds_alternative<TyBool>(t->v)  ||
+         std::holds_alternative<TyChar>(t->v)  ||
          std::holds_alternative<TyVoid>(t->v);
 }
 
@@ -55,7 +55,8 @@ bool typeEq(const TypePtr& a, const TypePtr& b) {
     }
     return true;
   }
-  return true; // primitivos e Null: se index bate, é igual
+  // primitivos, Null e TyVar (mesmo index => igual)
+  return true;
 }
 
 std::string typeToString(const TypePtr& t) {
@@ -83,6 +84,7 @@ std::string typeToString(const TypePtr& t) {
     return oss.str();
   }
 
-  return "<?>";
-}
+  if (auto tv = std::get_if<TyVar>(&t->v)) return tv->name;
 
+  return "<?>"; // fallback
+}

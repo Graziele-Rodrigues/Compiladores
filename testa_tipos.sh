@@ -7,15 +7,14 @@
 COMPILER=./compiler
 
 DIRS=(
-  "testes/tipos/simple"
-  "testes/tipos/function"
-  "testes/tipos/full"
-  "testes/tipos/certo"
-  "testes/tipos/errado"
+  "testes/types/simple"
+  "testes/types/function"
+  "testes/types/full"
+  "testes/types/errado"
 )
 
 LOGDIR="logs_tipos"
-mkdir -p "$LOGDIR/out" "$LOGDIR/err"
+mkdir -p "$LOGDIR/out" "$LOGDIR/err" "$LOGDIR/tmp"
 
 FAILED="$LOGDIR/falhas_tipos.txt"
 > "$FAILED"
@@ -43,24 +42,31 @@ for DIR in "${DIRS[@]}"; do
   fail=0
 
   for file in "${files[@]}"; do
-    # cria um "id" único por caminho, evitando sobrescrever logs
     rel="${file%.lan}"
-    safe="${rel//\//_}"  # troca / por _
+    safe="${rel//\//_}"
+
     out="$LOGDIR/out/${safe}.out"
     err="$LOGDIR/err/${safe}.err"
+    tmp="$LOGDIR/tmp/${safe}.all"
 
     echo "----------------------------------"
     echo "Arquivo: $file"
 
-    # Executa e:
-    # - mostra stdout (well typed / no typed) no terminal
-    # - salva stdout em $out
-    # - salva stderr em $err
-    timeout "${TIMEOUT_SECS}s" "$COMPILER" -ty "$file" </dev/null \
-      | tee "$out" 2>"$err"
+    # Executa e captura stdout + stderr juntos
+    timeout "${TIMEOUT_SECS}s" "$COMPILER" -ty "$file" </dev/null >"$tmp" 2>&1
+    code=$?
 
-    # OBS: com pipe, o exit code do compiler vem de PIPESTATUS[0]
-    code=${PIPESTATUS[0]}
+    # Mostra exatamente o que o compiler produziu
+    cat "$tmp"
+
+    # Salva apenas o status em .out
+    grep -E '^(well typed|no typed)\b' "$tmp" > "$out"
+
+    # Salva apenas as mensagens de erro em .err
+    grep -E '^Erro ' "$tmp" > "$err"
+
+    # Remove .err se estiver vazio
+    [ -s "$err" ] || rm -f "$err"
 
     if [ $code -eq 124 ]; then
       echo "TIMEOUT (>${TIMEOUT_SECS}s) -> $err"
@@ -73,7 +79,6 @@ for DIR in "${DIRS[@]}"; do
       echo "OK (exit=0) -> $out"
       pass=$((pass+1))
       total_pass=$((total_pass+1))
-      [ -s "$err" ] || rm -f "$err"
 
     else
       echo "FALHOU (exit=$code) -> $err"
@@ -81,6 +86,8 @@ for DIR in "${DIRS[@]}"; do
       fail=$((fail+1))
       total_fail=$((total_fail+1))
     fi
+
+    rm -f "$tmp"
   done
 
   echo "Resumo em $DIR:"

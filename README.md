@@ -87,17 +87,27 @@ O comando irá gerar o executável:
 ./compiler -i arquivo.lang2
 ```
 
-### Execução testes automatizados
-Foram desenvolvidos scripts em shell (.sh) para automatizar a execução dos testes do compilador, abrangendo sintaxe (casos corretos e incorretos) e interpretação.
+### Execução verificação de tipos
 
-Os scripts percorrem automaticamente os arquivos .lan dos diretórios de teste, executando o compilador com as opções correspondentes (-syn para validação sintática e -i para interpretação). Os resultados são avaliados por meio do código de saída do compilador.
+```bash
+./compiler -ty  arquivo.lang2
+```
+
+### Execução testes automatizados
+Foram desenvolvidos scripts em shell (.sh) para automatizar a execução dos testes do compilador, abrangendo sintaxe (casos corretos e incorretos), interpretação e verificação de tipos.
+
+Os scripts percorrem automaticamente os arquivos .lan dos diretórios de teste, executando o compilador com as opções correspondentes (-syn para validação sintática, -i para interpretação e -ty para verificação de tipos). Os resultados são avaliados por meio do código de saída do compilador.
 
 Nos testes de interpretação, as saídas padrão e de erro são armazenadas em diretórios específicos, e os casos que falham são registrados em arquivos de log.
-Já nos testes sintáticos, são verificados tanto a aceitação de programas válidos quanto a rejeição correta de programas inválidos.
+
+Nos testes sintáticos, são verificados tanto a aceitação de programas válidos quanto a rejeição correta de programas inválidos.
+
+E, por fim, nos testes de tipos são verificados os testes de tipos, caso correto exibe "well typed" e se incorreto exibe "no type" juntamente a posição e o erro encontrado.
 
 Para usa-los basta conceder a permissão:
 
 ```bash
+chmod +x testa_tipos.sh
 chmod +x testa_interpretacao.sh
 chmod +x testa_sintaxe_certo.sh
 chmod +x testa_sintaxe_errado.sh
@@ -106,6 +116,7 @@ chmod +x testa_sintaxe_errado.sh
 E depois chamar o script desejado:
 
 ```bash
+./testa_tipos.sh
 ./testa_sintaxe_certo.sh
 ./testa_sintaxe_errado.sh
 ./testa_interpretacao.sh

@@ -109,7 +109,7 @@ void TypeChecker::expectAssignable(const SrcPos& p, const TypePtr& target, const
 }
 
 //
-// parseType (CORRIGIDO) + suporte a TyVar dentro de class
+// parseType + suporte a TyVar dentro de class
 //
 TypePtr TypeChecker::parseType(const std::string& s0) {
   std::string s = trim(s0);
@@ -128,7 +128,6 @@ TypePtr TypeChecker::parseType(const std::string& s0) {
   else if (s == "Void") base = Type::Void();
   else if (s == "null") base = Type::Null();
   else {
-    // se estamos parseando dentro de "class ... a", então "a" vira TyVar("a")
     if (activeTyVar.has_value() && s == *activeTyVar) base = Type::Var(s);
     else base = Type::User(s);
   }
@@ -164,7 +163,9 @@ FunSig TypeChecker::parseFunSig(const std::vector<std::string>& params, const st
 }
 
 void TypeChecker::addPrimitiveFunctions() {
+  // Mantém para existir em Θ (mas o checker trata print como builtin com overload)
   theta["print"]  = FunSig{ {Type::Char()}, {Type::Void()} };
+
   theta["printb"] = FunSig{ {Type::Array(Type::Char()), Type::Int(), Type::Int()}, {Type::Void()} };
   theta["read"]   = FunSig{ {}, {Type::Char()} };
   theta["readb"]  = FunSig{ {Type::Array(Type::Char()), Type::Int(), Type::Int()}, {Type::Int()} };
@@ -237,7 +238,6 @@ void TypeChecker::buildClasses(const Program& prog) {
       if (ci.methods.count(mname))
         err(cd->pos, "Método repetido na classe " + cd->className + ": " + mname);
 
-      // parse da assinatura do método (texto "a->Char" etc.)
       FunSig sig = parseFunSig({}, annot);
       ci.methods[mname] = sig;
 
@@ -339,9 +339,9 @@ void TypeChecker::checkProgram(const Program& prog) {
   gamma.push();
 
   buildDelta(prog);
-  buildClasses(prog);    // classes primeiro (usa activeTyVar)
-  buildTheta(prog);      // funções normais (já impede conflito com methodOwner)
-  buildInstances(prog);  // instâncias (precisa de classes)
+  buildClasses(prog);
+  buildTheta(prog);
+  buildInstances(prog);
 
   requireMainVoid(prog);
 
@@ -487,6 +487,10 @@ void TypeChecker::visit(EBinary& b) {
   auto isChar  = [](const TypePtr& t){ return std::holds_alternative<TyChar>(t->v); };
   auto isBool  = [](const TypePtr& t){ return std::holds_alternative<TyBool>(t->v); };
 
+  auto isArray = [&](const TypePtr& t){ return std::holds_alternative<TyArray>(t->v); };
+  auto isUser  = [&](const TypePtr& t){ return std::holds_alternative<TyUser>(t->v); };
+  auto isNull  = [&](const TypePtr& t){ return std::holds_alternative<TyNull>(t->v); };
+
   switch (b.op) {
     case EBinary::AndAnd:
       if (!isBool(L) || !isBool(R)) err(b.pos, "&& exige Bool && Bool");
@@ -497,7 +501,7 @@ void TypeChecker::visit(EBinary& b) {
     case EBinary::Sub:
     case EBinary::Mul:
     case EBinary::Div:
-      if (isInt(L) && isInt(R))   { resultType = Type::Int(); return; }
+      if (isInt(L) && isInt(R))     { resultType = Type::Int(); return; }
       if (isFloat(L) && isFloat(R)) { resultType = Type::Float(); return; }
       err(b.pos, "Operação aritmética exige operandos homogêneos (Int/Int ou Float/Float)");
 
@@ -505,16 +509,44 @@ void TypeChecker::visit(EBinary& b) {
       if (isInt(L) && isInt(R)) { resultType = Type::Int(); return; }
       err(b.pos, "% exige Int % Int");
 
+    // ======= igualdade / diferença =======
     case EBinary::Eq:
-    case EBinary::Ne:
+    case EBinary::Ne: {
+      // permitir null com tipos referência (Array e User/registro)
+      if (isNull(L) && (isArray(R) || isUser(R))) { resultType = Type::Bool(); return; }
+      if (isNull(R) && (isArray(L) || isUser(L))) { resultType = Type::Bool(); return; }
+      if (isNull(L) && isNull(R))                 { resultType = Type::Bool(); return; }
+
+      const bool homoOK =
+        (isInt(L) && isInt(R)) ||
+        (isFloat(L) && isFloat(R)) ||
+        (isChar(L) && isChar(R));
+
+      const bool charIntOK =
+        (isChar(L) && isInt(R)) ||
+        (isInt(L) && isChar(R));
+
+      if (homoOK || charIntOK) { resultType = Type::Bool(); return; }
+      err(b.pos, "Comparação exige operandos compatíveis");
+    }
+
+    // ======= relacionais (< <= > >=) =======
     case EBinary::Lt:
     case EBinary::Le:
     case EBinary::Gt:
-    case EBinary::Ge:
-      if (isInt(L) && isInt(R))   { resultType = Type::Bool(); return; }
-      if (isFloat(L) && isFloat(R)) { resultType = Type::Bool(); return; }
-      if (isChar(L) && isChar(R)) { resultType = Type::Bool(); return; }
-      err(b.pos, "Comparação exige operandos do mesmo tipo em {Int, Float, Char}");
+    case EBinary::Ge: {
+      const bool homoOK =
+        (isInt(L) && isInt(R)) ||
+        (isFloat(L) && isFloat(R)) ||
+        (isChar(L) && isChar(R));
+
+      const bool charIntOK =
+        (isChar(L) && isInt(R)) ||
+        (isInt(L) && isChar(R));
+
+      if (homoOK || charIntOK) { resultType = Type::Bool(); return; }
+      err(b.pos, "Comparação exige operandos compatíveis");
+    }
 
     default:
       err(b.pos, "Operador binário não suportado no checker");
@@ -542,6 +574,24 @@ void TypeChecker::visit(ENew& n) {
 // ECall
 //
 void TypeChecker::visit(ECall& c) {
+  // print aceita Char/Int/Float/Bool
+  if (c.name == "print") {
+    if (c.args.size() != 1) err(c.pos, "Aridade incorreta em print");
+
+    TypePtr at = typeOf(c.args[0]);
+
+    const bool ok =
+      std::holds_alternative<TyChar>(at->v)  ||
+      std::holds_alternative<TyInt>(at->v)   ||
+      std::holds_alternative<TyFloat>(at->v) ||
+      std::holds_alternative<TyBool>(at->v);
+
+    if (!ok) err(c.pos, "print aceita Char, Int, Float ou Bool (obtido " + typeToString(at) + ")");
+
+    resultType = Type::Void();
+    return;
+  }
+
   auto mo = methodOwner.find(c.name);
   if (mo != methodOwner.end()) {
     const std::string& cls = mo->second;
@@ -554,28 +604,24 @@ void TypeChecker::visit(ECall& c) {
     if (c.args.empty())
       err(c.pos, "Método de classe precisa de argumentos para inferir tipo");
 
-    // 1º argumento
     TypePtr concrete = typeOf(c.args[0]);
     std::string concreteName = typeToString(concrete);
 
     if (!instSet.count({cls, concreteName}))
       err(c.pos, "Não existe instância: " + cls + " for " + concreteName);
 
-    // checar args com assinatura substituída
     for (size_t i = 0; i < c.args.size(); ++i) {
       TypePtr ai = typeOf(c.args[i]);
       TypePtr expectedPi = substTyVar(msig.params[i], ci.tyVar, concrete);
       expectAssignable(c.pos, expectedPi, ai);
     }
 
-    // retornos substituídos
     if (msig.rets.empty()) err(c.pos, "Método sem retornos: " + c.name);
 
     std::vector<TypePtr> retsSub;
     retsSub.reserve(msig.rets.size());
     for (auto& r : msig.rets) retsSub.push_back(substTyVar(r, ci.tyVar, concrete));
 
-    // retIndex igual ao seu código original
     if (!c.retIndex.has_value()) {
       resultType = retsSub[0];
       return;
@@ -595,7 +641,6 @@ void TypeChecker::visit(ECall& c) {
     return;
   }
 
-  // 2) caso contrário: função normal (seu código original)
   auto it = theta.find(c.name);
   if (it == theta.end()) err(c.pos, "Função não declarada: " + c.name);
 
@@ -629,9 +674,7 @@ void TypeChecker::visit(ECall& c) {
 }
 
 
-//
 // Visitor: Cmds
-//
 void TypeChecker::visit(CBlock& b) {
   gamma.push();
   for (auto& c : b.cs) if (c) c->accept(*this);
@@ -697,19 +740,45 @@ void TypeChecker::visit(CIterate& it) {
 }
 
 void TypeChecker::visit(CReturn& r) {
+
+   if (r.exps.empty()) {
+    if (currentReturns.size() == 1 &&
+        std::holds_alternative<TyVoid>(currentReturns[0]->v)) {
+      return; // ok
+    }
+    err(r.pos, "return com quantidade incorreta de valores");
+  }
+
+  // caso normal: número de expressões precisa bater com a aridade do retorno
   if (r.exps.size() != currentReturns.size()) {
     err(r.pos, "return com quantidade incorreta de valores");
   }
+
   for (size_t i = 0; i < r.exps.size(); ++i) {
     TypePtr ti = typeOf(r.exps[i]);
     expectAssignable(r.pos, currentReturns[i], ti);
   }
 }
 
-//
-// CCallStmt: também suporta método de classe
-//
+// CCallStmt
 void TypeChecker::visit(CCallStmt& cs) {
+  // print aceita Char/Int/Float/Bool
+  if (cs.name == "print") {
+    if (cs.args.size() != 1) err(cs.pos, "Aridade incorreta em print");
+    if (!cs.rets.empty()) err(cs.pos, "print não retorna valores em <...>");
+
+    TypePtr at = typeOf(cs.args[0]);
+
+    const bool ok =
+      std::holds_alternative<TyChar>(at->v)  ||
+      std::holds_alternative<TyInt>(at->v)   ||
+      std::holds_alternative<TyFloat>(at->v) ||
+      std::holds_alternative<TyBool>(at->v);
+
+    if (!ok) err(cs.pos, "print aceita Char, Int, Float ou Bool (obtido " + typeToString(at) + ")");
+    return;
+  }
+
   auto mo = methodOwner.find(cs.name);
   if (mo != methodOwner.end()) {
     const std::string& cls = mo->second;
@@ -734,22 +803,37 @@ void TypeChecker::visit(CCallStmt& cs) {
       expectAssignable(cs.pos, expectedPi, ai);
     }
 
-    if (!cs.rets.empty()) {
-      std::vector<TypePtr> retsSub;
-      retsSub.reserve(msig.rets.size());
-      for (auto& r : msig.rets) retsSub.push_back(substTyVar(r, ci.tyVar, concrete));
+    // retornos substituídos
+    std::vector<TypePtr> retsSub;
+    retsSub.reserve(msig.rets.size());
+    for (auto& r : msig.rets) retsSub.push_back(substTyVar(r, ci.tyVar, concrete));
 
+    if (!cs.rets.empty()) {
       if (cs.rets.size() != retsSub.size())
         err(cs.pos, "Quantidade de lvalues em <...> não bate com retornos de " + cs.name);
 
       for (size_t i = 0; i < cs.rets.size(); ++i) {
-        TypePtr li = typeOf(cs.rets[i]);
-        expectAssignable(cs.pos, li, retsSub[i]);
+        // para <..>
+        if (auto lv = std::dynamic_pointer_cast<LVar>(cs.rets[i])) {
+          TypePtr existing = gamma.lookup(lv->name);
+          if (!existing) {
+            gamma.declare(lv->name, retsSub[i]);
+          } else {
+            expectAssignable(cs.pos, existing, retsSub[i]);
+          }
+          continue;
+        }
+
+        // outros lvalues precisam existir
+        TypePtr lt = typeOf(cs.rets[i]);
+        expectAssignable(cs.pos, lt, retsSub[i]);
       }
     }
+
     return;
   }
 
+  // função normal
   auto it = theta.find(cs.name);
   if (it == theta.end()) err(cs.pos, "Função não declarada: " + cs.name);
 
@@ -765,9 +849,22 @@ void TypeChecker::visit(CCallStmt& cs) {
     if (cs.rets.size() != sig.rets.size()) {
       err(cs.pos, "Quantidade de lvalues em <...> não bate com retornos de " + cs.name);
     }
+
     for (size_t i = 0; i < cs.rets.size(); ++i) {
-      TypePtr li = typeOf(cs.rets[i]);
-      expectAssignable(cs.pos, li, sig.rets[i]);
+      // ✅ declarar variável nova em <...>
+      if (auto lv = std::dynamic_pointer_cast<LVar>(cs.rets[i])) {
+        TypePtr existing = gamma.lookup(lv->name);
+        if (!existing) {
+          gamma.declare(lv->name, sig.rets[i]);
+        } else {
+          expectAssignable(cs.pos, existing, sig.rets[i]);
+        }
+        continue;
+      }
+
+      // outros lvalues precisam existir
+      TypePtr lt = typeOf(cs.rets[i]);
+      expectAssignable(cs.pos, lt, sig.rets[i]);
     }
   }
 }

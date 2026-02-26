@@ -24,7 +24,6 @@ static void print_help()
         "  ./compiler -syn <arquivo>\n"
         "  ./compiler -i   <arquivo>\n"
         "  ./compiler -ty  <arquivo>\n"
-        "  ./compiler -ti  <arquivo>\n"
         "  ./compiler -v\n";
 }
 
@@ -61,7 +60,7 @@ int main(int argc, char** argv)
     }
 
     // valida opção
-    if (option != "-syn" && option != "-i" && option != "-ty" && option != "-ti") {
+    if (option != "-syn" && option != "-i" && option != "-ty") {
         print_help();
         return 1;
     }
