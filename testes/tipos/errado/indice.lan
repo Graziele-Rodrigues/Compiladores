@@ -1,4 +1,0 @@
-main :: Void {
-    v = new Int[10];
-    v[true] = 5;
-}

@@ -1,4 +1,0 @@
-main :: Void {
-  x = 1;
-  if(x  0) else y := 20; else y = 10;
-}

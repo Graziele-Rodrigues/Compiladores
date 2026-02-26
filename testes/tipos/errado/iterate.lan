@@ -1,5 +1,0 @@
-main :: Void {
-    iterate (true) {
-        x = 1;
-    }
-}

@@ -1,8 +1,0 @@
-class Chr a {
-  tychr :: a -> Char;
-  tychr :: a -> Char;   -- duplicado
-}
-
-main :: Void {
-  print('X');
-}

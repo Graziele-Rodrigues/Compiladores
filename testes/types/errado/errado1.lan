@@ -1,8 +1,0 @@
-data Ponto{
-     x :: Int;
-     y :: Int;
-}
-
-main :: Void {
-    w = x.z;
-}

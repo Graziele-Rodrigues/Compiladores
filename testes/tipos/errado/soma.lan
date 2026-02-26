@@ -1,5 +1,0 @@
-main :: Void {
-    x = 10;
-    y = true;
-    z = x + y;
-}

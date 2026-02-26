@@ -1,9 +1,0 @@
-fn :: Void -> Int & Char {
-    return 2+1 'a';
-}
-
-
-main :: Void {
-    x = 105;
-    x = fn()[x];
-}

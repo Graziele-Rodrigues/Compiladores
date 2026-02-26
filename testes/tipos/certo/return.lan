@@ -1,9 +1,0 @@
-divmod a b :: Int -> Int -> Int & Int {
-    return a / b a % b;
-}
-
-main :: Void {
-    x = 0;
-    y = 0;
-    divmod(10,3) <x,y>;
-}

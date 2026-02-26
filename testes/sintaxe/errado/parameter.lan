@@ -1,3 +1,0 @@
-main v f :: Int[]  -> Float {
-  9 = read();
-}
